@@ -2,7 +2,7 @@ import { test, expect } from '@fixtures/pages.fixture';
 import { checkoutInfo } from '@data/users';
 import { sum } from '@utils/money';
 
-test.describe('Checkout @regression', () => {
+test.describe('Checkout', () => {
   test('completes a full purchase end to end @smoke', async ({
     authenticatedPage,
     cartPage,
@@ -35,7 +35,7 @@ test.describe('Checkout @regression', () => {
     await expect(checkoutCompletePage.completeHeader).toHaveText('Thank you for your order!');
   });
 
-  test('checkout requires first name, last name, and postal code', async ({
+  test('checkout requires first name, last name, and postal code @regression', async ({
     authenticatedPage,
     cartPage,
     checkoutStepOnePage,
@@ -57,7 +57,7 @@ test.describe('Checkout @regression', () => {
     await expect(checkoutStepOnePage.errorMessage).toContainText('Postal Code is required');
   });
 
-  test('cancel on step one returns to the cart', async ({
+  test('cancel on step one returns to the cart @regression', async ({
     authenticatedPage,
     cartPage,
     checkoutStepOnePage,
@@ -70,7 +70,7 @@ test.describe('Checkout @regression', () => {
     await cartPage.expectLoaded();
   });
 
-  test('cancel on step two returns to the inventory page', async ({
+  test('cancel on step two returns to the inventory page @regression', async ({
     authenticatedPage,
     cartPage,
     checkoutStepOnePage,
@@ -90,7 +90,7 @@ test.describe('Checkout @regression', () => {
     await authenticatedPage.expectLoaded();
   });
 
-  test('back to products from the confirmation page resets the cart', async ({
+  test('back to products from the confirmation page resets the cart @regression', async ({
     authenticatedPage,
     cartPage,
     checkoutStepOnePage,

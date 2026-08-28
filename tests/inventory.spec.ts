@@ -1,7 +1,7 @@
 import { test, expect } from '@fixtures/pages.fixture';
 
-test.describe('Inventory @smoke', () => {
-  test('displays all six products', async ({ authenticatedPage }) => {
+test.describe('Inventory', () => {
+  test('displays all six products @smoke', async ({ authenticatedPage }) => {
     await expect(authenticatedPage.inventoryItems).toHaveCount(6);
   });
 

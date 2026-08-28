@@ -1,7 +1,7 @@
 import { test, expect } from '@fixtures/pages.fixture';
 
-test.describe('Cart @regression', () => {
-  test('cart reflects items added from the inventory page', async ({
+test.describe('Cart', () => {
+  test('cart reflects items added from the inventory page @regression', async ({
     authenticatedPage,
     cartPage,
   }) => {
@@ -15,7 +15,7 @@ test.describe('Cart @regression', () => {
     expect(await cartPage.getItemCount()).toBe(2);
   });
 
-  test('removing an item from the cart updates the badge', async ({
+  test('removing an item from the cart updates the badge @regression', async ({
     authenticatedPage,
     cartPage,
   }) => {
@@ -28,7 +28,7 @@ test.describe('Cart @regression', () => {
     await expect(cartPage.cartBadge).toBeHidden();
   });
 
-  test('continue shopping returns to the inventory page', async ({
+  test('continue shopping returns to the inventory page @regression', async ({
     authenticatedPage,
     cartPage,
   }) => {
@@ -38,7 +38,7 @@ test.describe('Cart @regression', () => {
     await authenticatedPage.expectLoaded();
   });
 
-  test('empty cart cannot proceed with a non-existent checkout button click', async ({
+  test('empty cart cannot proceed with a non-existent checkout button click @regression', async ({
     authenticatedPage,
     cartPage,
   }) => {

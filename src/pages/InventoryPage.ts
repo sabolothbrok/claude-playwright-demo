@@ -1,14 +1,8 @@
 import { Locator, Page, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
+/** Matches the `value` attributes of the sort dropdown's <option>s. */
 export type SortOption = 'az' | 'za' | 'lohi' | 'hilo';
-
-const SORT_VALUE_MAP: Record<SortOption, string> = {
-  az: 'az',
-  za: 'za',
-  lohi: 'lohi',
-  hilo: 'hilo',
-};
 
 /**
  * Page Object for the "Products" / inventory page (/inventory.html),
@@ -74,6 +68,6 @@ export class InventoryPage extends BasePage {
   }
 
   async sortBy(option: SortOption): Promise<void> {
-    await this.sortDropdown.selectOption(SORT_VALUE_MAP[option]);
+    await this.sortDropdown.selectOption(option);
   }
 }

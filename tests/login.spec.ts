@@ -1,8 +1,8 @@
 import { test, expect } from '@fixtures/pages.fixture';
 import { users } from '@data/users';
 
-test.describe('Login @smoke', () => {
-  test('standard user can log in successfully', async ({ loginPage, inventoryPage }) => {
+test.describe('Login', () => {
+  test('standard user can log in successfully @smoke', async ({ loginPage, inventoryPage }) => {
     await loginPage.goto();
     await loginPage.login(users.standard.username, users.standard.password);
     await inventoryPage.expectLoaded();
