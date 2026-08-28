@@ -155,3 +155,70 @@ chromium/firefox/webkit. It uploads the HTML report and trace/video/screenshot
 artifacts for every run so failures are debuggable from the Actions tab
 without reproducing locally first. Mirror any config change (new project,
 new env var) in both `playwright.config.ts` and the workflow file.
+
+## Converting manual test cases into automated specs
+
+This is the workflow to follow when the ask is "take this existing manual
+test case (or a batch of them for one feature) and automate it" rather than
+"write a new test from scratch." It's the same framework, but the source of
+truth is a human-written test case instead of a feature description, so
+traceability back to that source matters.
+
+1. **Scope to one feature per batch.** Take all manual cases for a single
+   feature/module together (e.g. every "Checkout" case), not a grab-bag
+   across the app. This keeps the resulting Page Object work coherent and
+   makes progress reportable feature-by-feature.
+
+2. **Verify each case against the live app before coding anything.** Manual
+   test documentation drifts from reality — steps reference UI that's
+   changed, expected results that are stale. Use the Playwright MCP server
+   (see "Using the Playwright MCP server to explore the app" above) to walk
+   each manual step against the real, running app first and confirm the
+   locators/behavior. Do not translate a stale manual step into code as-is
+   without checking it live.
+
+3. **Reuse or extend Page Objects before writing the spec** — same rule as
+   any other test (see "Adding a new test — step by step" above). A batch of
+   manual cases for one feature often needs one new Page Object plus reuse of
+   several existing ones.
+
+4. **One manual case → one `test()`, with an explicit traceability link.**
+   Preserve the source case's identifier in the test so coverage is
+   auditable later:
+
+   ```ts
+   // TC-1042: Guest can complete checkout with a single item
+   test('completes checkout with a single item @smoke', async ({ ... }) => {
+     ...
+   });
+   ```
+
+   Prefer putting the ID in a leading comment (shown above) or in the test
+   title itself if the team's reporting tooling parses titles — check
+   `tests/` for the convention already in use before choosing.
+
+5. **Translate manual "expected results" into explicit assertions**, not
+   just "did it not crash." If the manual case says "user sees order
+   confirmation with total matching cart," that's an assertion on the
+   confirmation header text *and* a numeric assertion on the total — mirror
+   `tests/checkout.spec.ts` for the pattern of deriving/asserting totals.
+
+6. **Data-drive anything the manual case parameterizes** (multiple user
+   types, multiple products) via `src/data/`, rather than duplicating near-
+   identical `test()` blocks per data variant.
+
+7. **Run it, fix drift, then treat it like any other PR** — lint, typecheck,
+   full local run, then normal review. An automated conversion is not exempt
+   from the same bar as a hand-written test.
+
+8. **Log the conversion.** Maintain a simple coverage mapping (a doc or
+   sheet outside this repo is fine) of manual case ID → spec file → status
+   (automated / blocked / not applicable), updated as each batch lands. This
+   is what turns "we're automating things" into a reportable number for
+   stakeholders.
+
+When a manual case can't be automated as written (e.g. it depends on visual
+inspection, a third-party system, or manual data setup this framework can't
+reach), don't force it — mark it "blocked" in the coverage log with the
+reason and move to the next case, rather than writing a test that doesn't
+actually verify the case's intent.
