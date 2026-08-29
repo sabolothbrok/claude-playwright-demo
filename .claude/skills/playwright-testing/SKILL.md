@@ -151,7 +151,10 @@ Before opening a PR:
 
 `.github/workflows/playwright.yml` runs the full suite on push/PR to
 main/master, on a nightly schedule, and on manual dispatch — as a matrix over
-chromium/firefox/webkit. It uploads the HTML report and trace/video/screenshot
+chromium/firefox/webkit/mobile-chrome (each matrix entry carries the Playwright
+`project` name plus the `browser` engine to install; mobile-chrome installs
+Chromium). Playwright's browser binaries are cached per engine, keyed on the
+`@playwright/test` version. It uploads the HTML report and trace/video/screenshot
 artifacts for every run so failures are debuggable from the Actions tab
 without reproducing locally first. Mirror any config change (new project,
 new env var) in both `playwright.config.ts` and the workflow file.
