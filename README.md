@@ -81,3 +81,25 @@ server to confirm selectors against the live site before writing a test).
 Every push/PR to `main`/`master` runs the full suite across
 chromium/firefox/webkit via GitHub Actions, plus a nightly scheduled run.
 Reports and traces are uploaded as workflow artifacts.
+
+## Agents
+
+`.claude/agents/` defines five purpose-built Claude Code subagents that
+cover the automation lifecycle, each scoped to one responsibility with its
+own tool permissions:
+
+| Agent | Role | Hands off to |
+|---|---|---|
+| **Generator** (`test-generator`) | Converts manual test cases / feature descriptions into new specs, verified live via Playwright MCP before any code is written. | Runner (to confirm the new spec passes) |
+| **Runner** (`test-runner`) | Executes the suite (full, tagged, or a single spec) and reports a concise pass/fail summary with artifact links. | Analyzer (on any failure) |
+| **Analyzer** (`test-analyzer`) | Diagnoses *why* a test failed — app regression, selector/UI drift, flaky, environment issue, or test bug — without changing code. | Healer (drift only) or the user (regression/flaky) |
+| **Healer** (`test-healer`) | Fixes confirmed selector/UI drift, verifies the fix live, commits to a branch — never touches app regressions, never merges/pushes to main itself. | User (for review/merge) |
+| **Optimizer** (`test-optimizer`) | Periodically reviews the whole suite for flakiness, duplication, slow tests, and convention drift; proposes or makes low-risk fixes on a branch. | User (for anything higher-risk) |
+
+Typical loop: **Generator** adds coverage for a feature → **Runner** confirms
+it's green → on any later CI failure, **Runner** reports it and **Analyzer**
+diagnoses it → confirmed UI drift goes to **Healer**, a real regression goes
+back to the team → **Optimizer** runs periodically (e.g. monthly) to keep
+the suite itself healthy as it grows. Invoke any of them directly by name
+(e.g. "use the test-generator agent to automate the checkout test cases")
+or let Claude pick the right one based on the task.
