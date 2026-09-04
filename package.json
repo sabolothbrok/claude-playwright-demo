@@ -29,7 +29,7 @@
     "claude",
     "mcp"
   ],
-  "author": "",
+  "author": "Jafeth Briceño <jafeth.bj@gmail.com> (https://www.linkedin.com/in/jbricenojaen)",
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.48.0",

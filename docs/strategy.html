@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>E2E Test Automation Strategy</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --body: #334155;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --accent-dark: #1e3a8a;
+    --rule: #e2e8f0;
+    --tint: #f8fafc;
+    --tint2: #eef2ff;
+    --success: #059669;
+    --warn: #b45309;
+    --danger: #dc2626;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { font-size: 10.5pt; }
+
+  html { background: #ffffff; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--body);
+    background: #ffffff;
+    color-scheme: light;
+    line-height: 1.5;
+    margin: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1, h2, h3, h4 { color: var(--ink); line-height: 1.25; font-weight: 650; }
+  h2 {
+    font-size: 16pt;
+    margin: 0 0 4pt;
+    padding-bottom: 5pt;
+    border-bottom: 2px solid var(--accent);
+  }
+  h3 { font-size: 12pt; margin: 16pt 0 4pt; }
+  h4 { font-size: 10.5pt; margin: 12pt 0 3pt; color: var(--accent-dark); }
+  p { margin: 6pt 0; }
+  ul, ol { margin: 6pt 0; padding-left: 18pt; }
+  li { margin: 3pt 0; }
+  strong { color: var(--ink); }
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--tint);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.5pt 3pt;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 8.4pt;
+    line-height: 1.45;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 6px;
+    padding: 10pt 12pt;
+    overflow-x: auto;
+    margin: 8pt 0;
+  }
+  pre code { background: none; border: none; color: inherit; padding: 0; font-size: inherit; }
+
+  /* ---- layout helpers ---- */
+  .page { padding: 0 4mm; }
+  .section { page-break-inside: auto; margin-top: 22pt; }
+  .section:first-of-type { margin-top: 0; }
+  .break-before { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+
+  .lead { font-size: 11pt; color: var(--muted); margin-top: 2pt; }
+
+  /* ---- cover ---- */
+  .cover {
+    height: 246mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+  }
+  .cover-top { border-top: 5px solid var(--accent); padding-top: 14pt; }
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .cover h1 { font-size: 30pt; margin: 18pt 0 10pt; letter-spacing: -0.4px; }
+  .cover .subtitle { font-size: 13pt; color: var(--muted); font-weight: 500; max-width: 130mm; }
+  .cover-meta { font-size: 9.5pt; color: var(--muted); }
+  .cover-meta table { border: none; }
+  .cover-meta td { border: none; padding: 2pt 14pt 2pt 0; vertical-align: top; }
+  .cover-meta td:first-child { color: var(--ink); font-weight: 650; white-space: nowrap; }
+  .cover-badges { margin-top: 14pt; }
+  .badge {
+    display: inline-block;
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: var(--accent-dark);
+    background: var(--tint2);
+    border: 1px solid #c7d2fe;
+    border-radius: 20px;
+    padding: 3pt 10pt;
+    margin: 0 5pt 5pt 0;
+  }
+
+  /* ---- tables ---- */
+  table { width: 100%; border-collapse: collapse; margin: 8pt 0; font-size: 9pt; }
+  th, td { border: 1px solid var(--rule); padding: 5pt 7pt; text-align: left; vertical-align: top; }
+  th { background: var(--tint); color: var(--ink); font-weight: 650; }
+  tbody tr:nth-child(even) { background: #fbfcfe; }
+  .t-center { text-align: center; }
+  .t-narrow td, .t-narrow th { padding: 4pt 6pt; }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 7.6pt;
+    font-weight: 600;
+    padding: 1pt 5pt;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .tag-smoke { background: #dcfce7; color: #166534; }
+  .tag-reg { background: #e0e7ff; color: #3730a3; }
+  .p-crit { color: var(--danger); font-weight: 700; }
+  .p-high { color: var(--warn); font-weight: 700; }
+  .p-med  { color: var(--muted); font-weight: 600; }
+
+  /* ---- callouts ---- */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--tint);
+    border-radius: 0 6px 6px 0;
+    padding: 8pt 12pt;
+    margin: 10pt 0;
+    page-break-inside: avoid;
+  }
+  .callout .label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2pt;
+  }
+  .callout.client { border-left-color: var(--success); background: #f0fdf4; }
+  .callout.client .label { color: var(--success); }
+  .callout.warn { border-left-color: var(--warn); background: #fffbeb; }
+  .callout.warn .label { color: var(--warn); }
+
+  /* ---- phase cards ---- */
+  .phase {
+    display: grid;
+    grid-template-columns: 26pt 1fr;
+    gap: 10pt;
+    padding: 9pt 0;
+    border-bottom: 1px solid var(--rule);
+    page-break-inside: avoid;
+  }
+  .phase:last-child { border-bottom: none; }
+  .phase-num {
+    font-size: 15pt;
+    font-weight: 750;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .phase h4 { margin: 0 0 2pt; color: var(--ink); font-size: 11pt; }
+  .phase .meta { font-size: 8.4pt; color: var(--muted); margin-top: 4pt; }
+  .phase .meta b { color: var(--ink); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding-left: 18pt; position: relative; }
+  .checklist li::before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: 800;
+  }
+
+  figure { margin: 12pt 0; page-break-inside: avoid; }
+  figcaption { font-size: 8.2pt; color: var(--muted); text-align: center; margin-top: 4pt; }
+  svg { display: block; width: 100%; height: auto; }
+
+  .toc { font-size: 10pt; }
+  .toc ol { padding-left: 20pt; }
+  .toc li { margin: 4pt 0; }
+  .toc .sub { color: var(--muted); font-size: 9pt; }
+
+  .footnote { font-size: 8.4pt; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 20pt; padding-top: 6pt; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cover page">
+  <div class="cover-top">
+    <div class="kicker">Quality Engineering &middot; Playbook</div>
+    <h1>End-to-End Test Automation Strategy</h1>
+    <div class="subtitle">How we take a new product feature from requirement to reliable, cross-browser automated coverage &mdash; predictably, and with evidence at every step.</div>
+    <div class="cover-badges">
+      <span class="badge">Playwright + TypeScript</span>
+      <span class="badge">Page Object Model</span>
+      <span class="badge">Risk-based coverage</span>
+      <span class="badge">CI/CD matrix (Chromium / Firefox / WebKit)</span>
+      <span class="badge">AI-assisted maintenance</span>
+    </div>
+  </div>
+  <div class="cover-meta">
+    <table>
+      <tr><td>Prepared by</td><td>Jafeth B. &mdash; QA Automation Engineer</td></tr>
+      <tr><td>Worked example</td><td>Checkout feature (SauceDemo reference application)</td></tr>
+      <tr><td>Version</td><td>1.0 &nbsp;&middot;&nbsp; 29 August 2026</td></tr>
+      <tr><td>Audience</td><td>Client stakeholders, product owners, delivery leads</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ TOC ============ -->
+<section class="page">
+  <h2>Contents</h2>
+  <div class="toc">
+    <ol>
+      <li>Executive summary <span class="sub">&mdash; what you get and why it is trustworthy</span></li>
+      <li>Guiding principles <span class="sub">&mdash; the non-negotiables of a senior-grade suite</span></li>
+      <li>The automation lifecycle <span class="sub">&mdash; seven phases, every feature, every time</span></li>
+      <li>Choosing what to automate <span class="sub">&mdash; risk, the test pyramid, smoke vs. regression</span></li>
+      <li>Framework architecture <span class="sub">&mdash; how the code is organised so it stays cheap to change</span></li>
+      <li>Worked example: the Checkout feature <span class="sub">&mdash; the strategy applied end to end</span></li>
+      <li>Quality gates &amp; Definition of Done</li>
+      <li>CI/CD pipeline</li>
+      <li>Maintenance model <span class="sub">&mdash; keeping green suites green</span></li>
+      <li>Metrics we report to you</li>
+      <li>Anti-patterns we refuse to ship</li>
+      <li>Effort &amp; timeline for a feature this size</li>
+    </ol>
+    <p class="sub">Appendix A &mdash; Command reference &nbsp;&bull;&nbsp; Appendix B &mdash; Glossary</p>
+  </div>
+</section>
+
+<!-- ============ 1. EXEC SUMMARY ============ -->
+<section class="section page break-before">
+  <h2>1 &nbsp; Executive summary</h2>
+  <p>
+    When a new feature such as <strong>Checkout</strong> is delivered, our job is to answer one
+    question with confidence and repeat that answer automatically on every future change:
+    <em>&ldquo;Does the feature still work, in every supported browser, for every important user
+    journey?&rdquo;</em>
+  </p>
+  <p>
+    We do this with a disciplined seven-phase process. Every feature follows the same path, so the
+    work is estimable, reviewable, and easy to explain. The output is a set of automated tests that
+    are <strong>readable as plain user intent</strong>, <strong>deterministic</strong> (no random
+    failures), <strong>fast</strong>, and <strong>cheap to maintain</strong> when the UI changes.
+  </p>
+
+  <div class="grid-2">
+    <div>
+      <h4>What the client receives</h4>
+      <ul>
+        <li>Documented test scenarios, prioritised by business risk, signed off <em>before</em> code is written.</li>
+        <li>Automated coverage of every critical (P1) journey, tagged <code>@smoke</code>.</li>
+        <li>A regression suite that runs on every pull request across Chromium, Firefox and WebKit.</li>
+        <li>A debuggable failure for every red test &mdash; trace, video and screenshot attached automatically.</li>
+        <li>A short report each cycle: coverage, pass rate, flake rate, run time.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Why it is trustworthy</h4>
+      <ul>
+        <li>Every manual step is <strong>verified against the live application</strong> before it becomes code.</li>
+        <li>Tests are <strong>isolated</strong>: each one sets up its own state and can run in parallel.</li>
+        <li>All UI access goes through <strong>Page Objects</strong> &mdash; when a selector changes, we fix it in one place.</li>
+        <li>Quality gates (type-check, lint, cross-browser run) block anything substandard from merging.</li>
+        <li>A defined maintenance model separates <em>&ldquo;the app broke&rdquo;</em> from <em>&ldquo;the test needs updating.&rdquo;</em></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout client">
+    <span class="label">In client terms</span>
+    You are not buying &ldquo;some test scripts.&rdquo; You are buying a <strong>repeatable safety net</strong>:
+    a process that catches regressions within minutes of a developer introducing them, with enough
+    evidence attached that the fix is usually obvious.
+  </div>
+</section>
+
+<!-- ============ 2. PRINCIPLES ============ -->
+<section class="section page break-before">
+  <h2>2 &nbsp; Guiding principles</h2>
+  <p>These seven principles are what separate a professional automation suite from a pile of brittle scripts. Every decision in this document traces back to one of them.</p>
+
+  <table>
+    <thead>
+      <tr><th style="width:34%">Principle</th><th>What it means in practice</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Test behaviour, not implementation</strong></td>
+        <td>Assertions describe what the <em>user</em> observes (&ldquo;the confirmation says <em>Thank you for your order</em>&rdquo;), never internal markup details that churn.</td>
+      </tr>
+      <tr>
+        <td><strong>2. Use the right layer</strong></td>
+        <td>End-to-end tests are reserved for true multi-screen user journeys. Logic that can be proven by a unit or API test is proven there &mdash; it is faster and more stable. (See &sect;4, the test pyramid.)</td>
+      </tr>
+      <tr>
+        <td><strong>3. Deterministic beats fast</strong></td>
+        <td>A test that fails 1 in 20 runs for no reason is worse than no test &mdash; it trains people to ignore red. We hunt flake down and quarantine it, we do not tolerate it.</td>
+      </tr>
+      <tr>
+        <td><strong>4. Readable as user intent</strong></td>
+        <td>A spec file reads like a manual test case: <code>login()</code>, <code>addToCartByName(&hellip;)</code>, <code>checkout()</code>. A product owner can read it without knowing TypeScript.</td>
+      </tr>
+      <tr>
+        <td><strong>5. Isolated &amp; parallel-safe</strong></td>
+        <td>Each test establishes its own starting state through shared fixtures. No test depends on another test having run first. The suite runs fully in parallel.</td>
+      </tr>
+      <tr>
+        <td><strong>6. Fail loud, debug fast</strong></td>
+        <td>On failure Playwright captures a full trace (DOM snapshots, network, console), video and screenshot. Diagnosis starts from evidence, not guesswork.</td>
+      </tr>
+      <tr>
+        <td><strong>7. Maintainable by design</strong></td>
+        <td>Selectors live only in Page Objects. Test data lives only in <code>src/data/</code>. Credentials live only in environment variables. One concept, one home.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 3. LIFECYCLE ============ -->
+<section class="section page break-before">
+  <h2>3 &nbsp; The automation lifecycle</h2>
+  <p>Every feature &mdash; Checkout, search, a new payment method &mdash; goes through the same seven phases. The loop at the end never stops: once a feature is covered, it stays covered.</p>
+
+  <figure class="avoid-break">
+    <svg viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+      <defs>
+        <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+        </marker>
+      </defs>
+      <!-- boxes -->
+      <g font-size="10" text-anchor="middle">
+        <g>
+          <rect x="4"   y="34" width="96" height="42" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+          <text x="52" y="52" fill="#1e3a8a" font-weight="700">1 Understand</text>
+          <text x="52" y="66" fill="#64748b" font-size="8">requirements</text>
+        </g>
+        <g>
+          <rect x="112" y="34" width="96" height="42" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+          <text x="160" y="52" fill="#1e3a8a" font-weight="700">2 Design</text>
+          <text x="160" y="66" fill="#64748b" font-size="8">manual scenarios</text>
+        </g>
+        <g>
+          <rect x="220" y="34" width="96" height="42" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+          <text x="268" y="52" fill="#1e3a8a" font-weight="700">3 Explore</text>
+          <text x="268" y="66" fill="#64748b" font-size="8">live app</text>
+        </g>
+        <g>
+          <rect x="328" y="34" width="96" height="42" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+          <text x="376" y="52" fill="#1e3a8a" font-weight="700">4 Build</text>
+          <text x="376" y="66" fill="#64748b" font-size="8">POM + specs</text>
+        </g>
+        <g>
+          <rect x="436" y="34" width="96" height="42" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+          <text x="484" y="52" fill="#1e3a8a" font-weight="700">5 Verify</text>
+          <text x="484" y="66" fill="#64748b" font-size="8">local + matrix</text>
+        </g>
+        <g>
+          <rect x="544" y="34" width="96" height="42" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+          <text x="592" y="52" fill="#1e3a8a" font-weight="700">6 Ship</text>
+          <text x="592" y="66" fill="#64748b" font-size="8">PR + CI green</text>
+        </g>
+        <g>
+          <rect x="652" y="34" width="104" height="42" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="704" y="52" fill="#166534" font-weight="700">7 Maintain</text>
+          <text x="704" y="66" fill="#166534" font-size="8">forever</text>
+        </g>
+      </g>
+      <!-- arrows -->
+      <g stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ah)">
+        <line x1="100" y1="55" x2="110" y2="55"/>
+        <line x1="208" y1="55" x2="218" y2="55"/>
+        <line x1="316" y1="55" x2="326" y2="55"/>
+        <line x1="424" y1="55" x2="434" y2="55"/>
+        <line x1="532" y1="55" x2="542" y2="55"/>
+        <line x1="640" y1="55" x2="650" y2="55"/>
+      </g>
+      <!-- feedback loop -->
+      <path d="M704,76 L704,120 L376,120 L376,78" fill="none" stroke="#86efac" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+      <text x="540" y="134" text-anchor="middle" font-size="8" fill="#166534">UI drift &rarr; heal the Page Object &nbsp;|&nbsp; app regression &rarr; raise a defect</text>
+    </svg>
+    <figcaption>Figure 1 &mdash; The seven-phase lifecycle. Phases 1&ndash;3 happen before any automation code exists.</figcaption>
+  </figure>
+
+  <div class="phase">
+    <div class="phase-num">1</div>
+    <div>
+      <h4>Understand the requirement</h4>
+      <p>Read the spec, acceptance criteria and designs. Sit with product and a developer to map the real user journeys, the edge cases, and the data the feature needs. Agree explicitly what is <em>in scope</em> for automation and what stays manual or exploratory.</p>
+      <p class="meta"><b>Output:</b> a one-page feature brief &mdash; journeys, rules, data, open questions, scope line.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">2</div>
+    <div>
+      <h4>Design the manual scenarios first</h4>
+      <p>Write the test cases in plain language before touching code &mdash; happy paths, validation, boundaries, negative cases, state transitions. Prioritise each by business risk (&sect;4). Tag each candidate <code>@smoke</code> (critical path) or <code>@regression</code> (everything else). Review this list with the client / product owner and get sign-off.</p>
+      <p class="meta"><b>Output:</b> a reviewed scenario table (see &sect;6 for the Checkout version). <b>Gate:</b> stakeholder sign-off.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">3</div>
+    <div>
+      <h4>Explore the live application</h4>
+      <p>Walk every scenario against the real running app using the Playwright inspector / MCP browser tooling or <code>npm run codegen</code>. Confirm the actual DOM, the real selectors, the true timing and the genuine edge-case behaviour. <strong>We never turn a manual step into a locator we have not seen work.</strong> Manual docs drift from reality; this phase catches that.</p>
+      <p class="meta"><b>Output:</b> confirmed selectors and behaviours, annotated on the scenario table; new questions raised back to the team.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">4</div>
+    <div>
+      <h4>Build &mdash; Page Objects then specs</h4>
+      <p>For each screen with no Page Object yet, create one from the template: <code>readonly</code> locators in the constructor, an <code>expectLoaded()</code> method, one method per user action, <em>no</em> assertions beyond <code>expectLoaded()</code>. Register it in <code>src/pages/index.ts</code> and the fixtures file. Then write the spec against the fixtures so it reads as user intent. Tag every test. Keep every test independent.</p>
+      <p class="meta"><b>Output:</b> new / updated files under <code>src/pages/</code>, <code>src/fixtures/</code>, <code>src/data/</code>, <code>tests/</code>.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">5</div>
+    <div>
+      <h4>Verify locally</h4>
+      <p><code>npm run typecheck</code> and <code>npm run lint</code> must be clean. Run the new spec in Chromium for the fast loop, then the full browser matrix. Re-run new tests with <code>--repeat-each=5</code> to smoke out flake. Inspect the trace for anything that failed before assuming the app is at fault.</p>
+      <p class="meta"><b>Output:</b> green local run across Chromium / Firefox / WebKit; a stability check on record.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">6</div>
+    <div>
+      <h4>Ship through review + CI</h4>
+      <p>Open a pull request with a description that lists the scenarios covered and links the feature brief. CI runs the full matrix. A peer (or an automated review pass) checks the code against the principles in &sect;2. Merge only on green CI and approved review.</p>
+      <p class="meta"><b>Output:</b> merged coverage; CI artifacts (HTML report, traces) retained for 14 days.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">7</div>
+    <div>
+      <h4>Maintain &mdash; continuously</h4>
+      <p>Every future CI run re-checks the feature. When something goes red, a defined triage (&sect;9) classifies it as a real app regression (&rarr; raise a defect), selector/UI drift (&rarr; fix the Page Object), a flake (&rarr; quarantine &amp; stabilise) or an environment issue. Periodically the whole suite is reviewed for duplication, slow tests and tagging hygiene.</p>
+      <p class="meta"><b>Output:</b> a suite that stays trustworthy month after month, not just on delivery day.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. WHAT TO AUTOMATE ============ -->
+<section class="section page break-before">
+  <h2>4 &nbsp; Choosing what to automate</h2>
+  <p>More tests is not the goal. The <em>right</em> tests, at the <em>right</em> layer, is the goal.</p>
+
+  <h3>4.1 &nbsp; Risk-based prioritisation</h3>
+  <p>Every scenario gets a priority from the answer to: <em>&ldquo;If this breaks in production, how bad is it?&rdquo;</em></p>
+  <table class="t-narrow">
+    <thead><tr><th style="width:14%">Priority</th><th style="width:36%">Criteria</th><th>Automation treatment</th></tr></thead>
+    <tbody>
+      <tr><td><span class="p-crit">P1 &mdash; Critical</span></td><td>Revenue path or blocks all users (can&rsquo;t log in, can&rsquo;t pay, can&rsquo;t submit).</td><td>Automated first, tagged <code>@smoke</code>, runs on every PR and pre-deploy.</td></tr>
+      <tr><td><span class="p-high">P2 &mdash; High</span></td><td>Important journey with a workaround, or affects a large segment.</td><td>Automated, tagged <code>@regression</code>, runs on every PR.</td></tr>
+      <tr><td><span class="p-med">P3 &mdash; Medium</span></td><td>Secondary flows, validation messages, non-blocking UI states.</td><td>Automated as <code>@regression</code> where stable and cost-effective.</td></tr>
+      <tr><td><span class="p-med">P4 &mdash; Low</span></td><td>Cosmetic, rare, or highly volatile UI.</td><td>Usually left to exploratory / manual testing. Automating it costs more than it saves.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 &nbsp; The test pyramid &mdash; use the cheapest layer that proves the point</h3>
+  <figure class="avoid-break">
+    <svg viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="9.5">
+      <g>
+        <polygon points="270,10 330,10 360,60 240,60" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="300" y="40" text-anchor="middle" fill="#991b1b" font-weight="700">E2E</text>
+        <polygon points="240,64 360,64 395,120 205,120" fill="#fef3c7" stroke="#fcd34d"/>
+        <text x="300" y="96" text-anchor="middle" fill="#92400e" font-weight="700">API / integration</text>
+        <polygon points="205,124 395,124 430,176 170,176" fill="#dcfce7" stroke="#86efac"/>
+        <text x="300" y="154" text-anchor="middle" fill="#166534" font-weight="700">Unit</text>
+      </g>
+      <g font-size="8.5" fill="#64748b">
+        <text x="450" y="38">Few. Slow. Whole user journey, real browser.</text>
+        <text x="450" y="96">Some. Business rules, calculations, contracts.</text>
+        <text x="450" y="152">Many. Pure logic, milliseconds, no browser.</text>
+      </g>
+    </svg>
+    <figcaption>Figure 2 &mdash; Push each check as low as it will go. E2E is the smallest, most valuable band.</figcaption>
+  </figure>
+  <p>
+    For Checkout: an E2E test proves <em>&ldquo;a customer can complete an order and land on the confirmation
+    page.&rdquo;</em> The exact tax-rounding rule for 37 line items is better proven by a unit test on the
+    pricing function. We automate the journey end-to-end and cover the arithmetic with a targeted
+    assertion, not twenty E2E permutations.
+  </p>
+
+  <h3>4.3 &nbsp; Smoke vs. regression</h3>
+  <table class="t-narrow">
+    <thead><tr><th style="width:18%">Suite</th><th style="width:22%">Contains</th><th style="width:20%">Runs</th><th>Target run time</th></tr></thead>
+    <tbody>
+      <tr><td><code>@smoke</code></td><td>P1 journeys only &mdash; login, one full checkout, core list loads.</td><td>Every PR, every deploy, on demand.</td><td>Under ~3 minutes.</td></tr>
+      <tr><td><code>@regression</code></td><td>Everything else that is automated.</td><td>Every PR + nightly across the full matrix.</td><td>Bounded by parallel workers; minutes, not hours.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <span class="label">Discipline</span>
+    Tags go on <strong>individual tests</strong>, never on a whole <code>describe</code> block &mdash; otherwise
+    every test in that block silently inherits <code>@smoke</code> and the &ldquo;3-minute&rdquo; smoke suite
+    quietly becomes a 20-minute one. Every test carries <em>exactly one</em> of the two tags.
+  </div>
+</section>
+
+<!-- ============ 5. ARCHITECTURE ============ -->
+<section class="section page break-before">
+  <h2>5 &nbsp; Framework architecture</h2>
+  <p>The architecture exists to make one thing true: <strong>when the UI changes, the cost of updating the tests is small and localised.</strong></p>
+
+  <figure class="avoid-break">
+    <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="9.5">
+      <defs>
+        <marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/></marker>
+      </defs>
+      <g text-anchor="middle">
+        <rect x="150" y="8"   width="300" height="34" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+        <text x="300" y="24" font-weight="700" fill="#1e3a8a">tests/*.spec.ts</text>
+        <text x="300" y="36" font-size="8" fill="#64748b">user intent + assertions + @smoke / @regression tags</text>
+
+        <rect x="150" y="58"  width="300" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+        <text x="300" y="74" font-weight="700" fill="#0f172a">src/fixtures/pages.fixture.ts</text>
+        <text x="300" y="86" font-size="8" fill="#64748b">injects ready Page Objects &middot; authenticatedPage (pre-logged-in)</text>
+
+        <rect x="150" y="108" width="300" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+        <text x="300" y="124" font-weight="700" fill="#0f172a">src/pages/*Page.ts &rarr; BasePage</text>
+        <text x="300" y="136" font-size="8" fill="#64748b">the ONLY place locators and page.* calls live</text>
+
+        <rect x="150" y="158" width="300" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+        <text x="300" y="174" font-weight="700" fill="#0f172a">@playwright/test</text>
+        <text x="300" y="186" font-size="8" fill="#64748b">auto-waiting, tracing, parallel runner, browser control</text>
+
+        <rect x="150" y="208" width="300" height="34" rx="6" fill="#dcfce7" stroke="#86efac"/>
+        <text x="300" y="228" font-weight="700" fill="#166534">Chromium &middot; Firefox &middot; WebKit &rarr; the application</text>
+
+        <!-- side boxes -->
+        <rect x="486" y="108" width="150" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa"/>
+        <text x="561" y="124" font-weight="700" fill="#9a3412">src/data/</text>
+        <text x="561" y="136" font-size="8" fill="#9a3412">users, checkout info</text>
+
+        <rect x="486" y="158" width="150" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa"/>
+        <text x="561" y="174" font-weight="700" fill="#9a3412">src/utils/</text>
+        <text x="561" y="186" font-size="8" fill="#9a3412">money math, helpers</text>
+      </g>
+      <g stroke="#94a3b8" stroke-width="1.4" marker-end="url(#ah2)">
+        <line x1="300" y1="42" x2="300" y2="56"/>
+        <line x1="300" y1="92" x2="300" y2="106"/>
+        <line x1="300" y1="142" x2="300" y2="156"/>
+        <line x1="300" y1="192" x2="300" y2="206"/>
+        <line x1="486" y1="125" x2="452" y2="125"/>
+        <line x1="486" y1="175" x2="452" y2="145"/>
+      </g>
+    </svg>
+    <figcaption>Figure 3 &mdash; Layered architecture. A test never reaches past the fixture / Page Object layer to touch the DOM directly.</figcaption>
+  </figure>
+
+  <div class="grid-2">
+    <div>
+      <h4>Page Object Model (POM)</h4>
+      <p>One class per screen. It owns that screen&rsquo;s locators and exposes verbs a user would recognise (<code>fillInformation()</code>, <code>finish()</code>). Shared authenticated-shell behaviour (burger menu, cart badge, error banner) lives in <code>BasePage</code>. If <code>#continue</code> becomes <code>#continue-btn</code>, we change <strong>one line</strong> and every test that checks out is fixed.</p>
+    </div>
+    <div>
+      <h4>Fixtures</h4>
+      <p>Tests declare what they need (<code>{ cartPage, checkoutStepOnePage }</code>) and receive it ready to use. <code>authenticatedPage</code> performs a real UI login once and hands back a page already on the inventory screen &mdash; so a checkout test starts from &ldquo;logged in,&rdquo; not from &ldquo;type username.&rdquo;</p>
+    </div>
+    <div>
+      <h4>Test data</h4>
+      <p>Credentials and checkout details live in <code>src/data/</code> and read from environment variables with safe defaults. Nothing sensitive is hard-coded in a spec; CI injects real values as secrets.</p>
+    </div>
+    <div>
+      <h4>Path aliases</h4>
+      <p><code>@pages</code>, <code>@fixtures</code>, <code>@data</code>, <code>@utils</code> keep imports stable and readable regardless of where a spec sits in the tree.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. WORKED EXAMPLE ============ -->
+<section class="section page break-before">
+  <h2>6 &nbsp; Worked example: the Checkout feature</h2>
+  <p>Here is the strategy applied, phase by phase, to a real feature.</p>
+
+  <h3>Phase 1 &mdash; Feature brief (extract)</h3>
+  <table class="t-narrow">
+    <tbody>
+      <tr><td style="width:22%"><b>Journeys</b></td><td>Cart &rarr; Checkout: Your Information &rarr; Checkout: Overview &rarr; Finish &rarr; Confirmation.</td></tr>
+      <tr><td><b>Rules</b></td><td>First name, last name and postal code are all required. Overview shows item total, tax and grand total. Grand total = item total + tax. &ldquo;Finish&rdquo; clears the cart.</td></tr>
+      <tr><td><b>Data</b></td><td>Standard user (from <code>src/data/users.ts</code>); checkout identity <code>John / Doe / 10101</code>.</td></tr>
+      <tr><td><b>Scope</b></td><td>In: the four checkout screens and their validation + math. Out: payment-provider integration (no real provider in this app).</td></tr>
+      <tr><td><b>Open questions</b></td><td>Confirmed with team: the app <em>permits</em> checkout from an empty cart &mdash; we assert the real behaviour rather than an assumed block.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 2 &mdash; Scenario table (reviewed &amp; signed off)</h3>
+  <table class="t-narrow">
+    <thead><tr><th style="width:8%">ID</th><th style="width:40%">Scenario</th><th style="width:10%">Priority</th><th style="width:12%">Tag</th><th>Page Objects</th></tr></thead>
+    <tbody>
+      <tr><td>CO-01</td><td>Complete a purchase end to end (1&ndash;2 items), land on &ldquo;Thank you for your order!&rdquo;</td><td class="t-center"><span class="p-crit">P1</span></td><td><span class="tag tag-smoke">@smoke</span></td><td>Cart, StepOne, StepTwo, Complete</td></tr>
+      <tr><td>CO-02</td><td>Overview math: grand total equals item total + tax</td><td class="t-center"><span class="p-high">P2</span></td><td><span class="tag tag-reg">@regression</span></td><td>StepTwo + <code>utils/money</code></td></tr>
+      <tr><td>CO-03</td><td>Cart contents carry through to the Overview screen</td><td class="t-center"><span class="p-high">P2</span></td><td><span class="tag tag-reg">@regression</span></td><td>Cart, StepTwo</td></tr>
+      <tr><td>CO-04</td><td>Missing first name &rarr; &ldquo;First Name is required&rdquo;</td><td class="t-center"><span class="p-high">P2</span></td><td><span class="tag tag-reg">@regression</span></td><td>StepOne</td></tr>
+      <tr><td>CO-05</td><td>Missing last name &rarr; &ldquo;Last Name is required&rdquo;</td><td class="t-center"><span class="p-med">P3</span></td><td><span class="tag tag-reg">@regression</span></td><td>StepOne</td></tr>
+      <tr><td>CO-06</td><td>Missing postal code &rarr; &ldquo;Postal Code is required&rdquo;</td><td class="t-center"><span class="p-med">P3</span></td><td><span class="tag tag-reg">@regression</span></td><td>StepOne</td></tr>
+      <tr><td>CO-07</td><td>Cancel on Step One returns to the cart</td><td class="t-center"><span class="p-med">P3</span></td><td><span class="tag tag-reg">@regression</span></td><td>Cart, StepOne</td></tr>
+      <tr><td>CO-08</td><td>Cancel on Step Two returns to the inventory page</td><td class="t-center"><span class="p-med">P3</span></td><td><span class="tag tag-reg">@regression</span></td><td>StepOne, StepTwo</td></tr>
+      <tr><td>CO-09</td><td>&ldquo;Back home&rdquo; from confirmation resets the cart badge to empty</td><td class="t-center"><span class="p-med">P3</span></td><td><span class="tag tag-reg">@regression</span></td><td>Complete</td></tr>
+      <tr><td>CO-10</td><td>Checkout button is available from an empty cart (documented actual behaviour)</td><td class="t-center"><span class="p-med">P4</span></td><td><span class="tag tag-reg">@regression</span></td><td>Cart</td></tr>
+    </tbody>
+  </table>
+  <p class="lead">Ten automated scenarios; one is the smoke-critical path. Payment-provider permutations are explicitly excluded and noted for manual/exploratory coverage.</p>
+
+  <h3>Phase 3 &mdash; Live exploration confirms</h3>
+  <ul>
+    <li>Step One fields: <code>#first-name</code>, <code>#last-name</code>, <code>#postal-code</code>; <code>#continue</code>, <code>#cancel</code>. Errors surface in <code>[data-test="error"]</code>.</li>
+    <li>Overview labels: <code>.summary_subtotal_label</code> (&ldquo;Item total: $&hellip;&rdquo;), <code>.summary_tax_label</code>, <code>.summary_total_label</code>.</li>
+    <li>Confirmation: <code>.complete-header</code> text is exactly <em>&ldquo;Thank you for your order!&rdquo;</em>; URL ends <code>checkout-complete.html</code>.</li>
+    <li>All four Page Objects already exist &mdash; no new screen classes needed for this feature.</li>
+  </ul>
+
+  <h3>Phase 4 &mdash; The code that results</h3>
+  <p>Page Object &mdash; screen owns its locators and actions, no assertions beyond <code>expectLoaded()</code>:</p>
+<pre><code>export class CheckoutStepOnePage extends BasePage {
+  readonly firstNameInput = this.page.locator('#first-name');
+  readonly continueButton = this.page.locator('#continue');
+  // &hellip;
+  async expectLoaded() {
+    await expect(this.page).toHaveURL(/checkout-step-one\.html/);
+    await expect(this.firstNameInput).toBeVisible();
+  }
+  async fillInformation(first: string, last: string, postal: string) {
+    await this.firstNameInput.fill(first);
+    await this.lastNameInput.fill(last);
+    await this.postalCodeInput.fill(postal);
+  }
+  async continueToOverview() { await this.continueButton.click(); }
+}</code></pre>
+  <p>Spec &mdash; reads as user intent; the smoke-critical journey (CO-01 + CO-02):</p>
+<pre><code>test('completes a full purchase end to end @smoke', async ({
+  authenticatedPage, cartPage, checkoutStepOnePage,
+  checkoutStepTwoPage, checkoutCompletePage,
+}) =&gt; {
+  await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+  await authenticatedPage.addToCartByName('Sauce Labs Bike Light');
+  await authenticatedPage.goToCart();
+
+  await cartPage.checkout();
+  await checkoutStepOnePage.fillInformation(
+    checkoutInfo.firstName, checkoutInfo.lastName, checkoutInfo.postalCode);
+  await checkoutStepOnePage.continueToOverview();
+
+  await checkoutStepTwoPage.expectLoaded();
+  const [subtotal, tax, total] = [
+    await checkoutStepTwoPage.getSubtotal(),
+    await checkoutStepTwoPage.getTax(),
+    await checkoutStepTwoPage.getTotal(),
+  ];
+  expect(total).toBeCloseTo(sum([subtotal, tax]), 2);
+
+  await checkoutStepTwoPage.finish();
+  await checkoutCompletePage.expectLoaded();
+  await expect(checkoutCompletePage.completeHeader)
+    .toHaveText('Thank you for your order!');
+});</code></pre>
+
+  <h3>Phases 5&ndash;6 &mdash; Verify &amp; ship</h3>
+  <ul class="checklist">
+    <li><code>typecheck</code> + <code>lint</code> clean.</li>
+    <li>10/10 scenarios green in Chromium, then green across Firefox &amp; WebKit.</li>
+    <li><code>--repeat-each=5</code> on the new specs: 50/50 passes &mdash; no flake.</li>
+    <li>PR opened, scenario table linked, CI matrix green, review approved, merged.</li>
+  </ul>
+</section>
+
+<!-- ============ 7. DoD ============ -->
+<section class="section page break-before">
+  <h2>7 &nbsp; Quality gates &amp; Definition of Done</h2>
+  <p>A feature&rsquo;s automation is &ldquo;done&rdquo; only when <em>every</em> box below is ticked. This list is the contract.</p>
+  <div class="grid-2">
+    <div>
+      <h4>Design</h4>
+      <ul class="checklist">
+        <li>Scenarios documented in plain language and reviewed with the client.</li>
+        <li>Each scenario has a risk priority (P1&ndash;P4).</li>
+        <li>Every step verified against the live app before coding.</li>
+      </ul>
+      <h4>Code</h4>
+      <ul class="checklist">
+        <li>No raw locators or <code>page.*</code> calls in spec files.</li>
+        <li>Page Objects follow the template; exported; wired into fixtures.</li>
+        <li>Assertions in tests only (bar <code>expectLoaded()</code>).</li>
+        <li>Locators use role / text / <code>data-test</code>, not brittle CSS or XPath.</li>
+        <li>No hard-coded waits / <code>waitForTimeout</code>.</li>
+        <li>New data in <code>src/data/</code>; no secrets in code.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Tests</h4>
+      <ul class="checklist">
+        <li>Every test tagged exactly one of <code>@smoke</code> / <code>@regression</code>.</li>
+        <li>Each test independent and parallel-safe.</li>
+        <li>Stability check (<code>--repeat-each</code>) recorded.</li>
+      </ul>
+      <h4>Pipeline</h4>
+      <ul class="checklist">
+        <li><code>typecheck</code> and <code>lint</code> pass.</li>
+        <li>Green locally in Chromium + the full matrix.</li>
+        <li>PR describes coverage and links the scenario table.</li>
+        <li>CI matrix green across Chromium / Firefox / WebKit.</li>
+        <li>Peer / automated review approved.</li>
+        <li>Config changes mirrored in both <code>playwright.config.ts</code> and the CI workflow.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. CI ============ -->
+<section class="section page break-before">
+  <h2>8 &nbsp; CI/CD pipeline</h2>
+  <table class="t-narrow">
+    <thead><tr><th style="width:22%">Trigger</th><th>What runs</th></tr></thead>
+    <tbody>
+      <tr><td>Every push / pull request to <code>main</code> / <code>master</code></td><td>Full suite as a matrix over Chromium, Firefox, WebKit. Fail-fast off, so one browser failing still reports the others.</td></tr>
+      <tr><td>Nightly schedule (06:00 UTC)</td><td>Same full matrix &mdash; catches environment drift and external-dependency breakage overnight.</td></tr>
+      <tr><td>Manual dispatch</td><td>On-demand run for release candidates or investigation.</td></tr>
+    </tbody>
+  </table>
+  <h4>Every run produces</h4>
+  <ul>
+    <li>An <strong>HTML report</strong> (uploaded as an artifact, kept 14 days) &mdash; pass/fail per test, per browser.</li>
+    <li><strong>Trace, video and screenshot</strong> for every failure &mdash; downloadable from the run without reproducing locally.</li>
+    <li>A JUnit XML file for dashboards / test-management integration.</li>
+  </ul>
+  <div class="callout">
+    <span class="label">Reproducibility</span>
+    CI installs from the committed lock file (<code>npm ci</code>) so the dependency tree is byte-identical
+    to what was tested locally. A missing lock file is treated as a build-blocking defect.
+  </div>
+  <h4>Deployment gate (recommended)</h4>
+  <p>Wire the <code>@smoke</code> suite as a required check before promoting a build to staging or production. It is fast enough (target &lt; 3 min) to sit in the critical path without slowing releases, and it is the cheapest possible insurance against shipping a broken revenue path.</p>
+</section>
+
+<!-- ============ 9. MAINTENANCE ============ -->
+<section class="section page break-before">
+  <h2>9 &nbsp; Maintenance model</h2>
+  <p>A suite is only as valuable as it is trusted. Trust dies the day people start ignoring red. So every failure is triaged through a fixed decision tree &mdash; and we use a set of focused assistants (each with a single job) to keep the loop fast.</p>
+
+  <figure class="avoid-break">
+    <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="9">
+      <defs><marker id="ah3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/></marker></defs>
+      <g text-anchor="middle">
+        <rect x="20" y="100" width="110" height="40" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+        <text x="75" y="118" font-weight="700" fill="#1e3a8a">Runner</text>
+        <text x="75" y="131" font-size="7.5" fill="#64748b">runs the suite</text>
+
+        <rect x="175" y="100" width="120" height="40" rx="6" fill="#eef2ff" stroke="#c7d2fe"/>
+        <text x="235" y="118" font-weight="700" fill="#1e3a8a">Analyzer</text>
+        <text x="235" y="131" font-size="7.5" fill="#64748b">classifies the failure</text>
+
+        <rect x="360" y="16"  width="150" height="38" rx="6" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="435" y="33" font-weight="700" fill="#991b1b">App regression</text>
+        <text x="435" y="46" font-size="7.5" fill="#991b1b">&rarr; raise a defect, keep test red</text>
+
+        <rect x="360" y="66"  width="150" height="38" rx="6" fill="#fef9c3" stroke="#fde047"/>
+        <text x="435" y="83" font-weight="700" fill="#854d0e">Selector / UI drift</text>
+        <text x="435" y="96" font-size="7.5" fill="#854d0e">&rarr; Healer fixes the Page Object</text>
+
+        <rect x="360" y="116" width="150" height="38" rx="6" fill="#e0f2fe" stroke="#7dd3fc"/>
+        <text x="435" y="133" font-weight="700" fill="#075985">Flake</text>
+        <text x="435" y="146" font-size="7.5" fill="#075985">&rarr; quarantine + stabilise</text>
+
+        <rect x="360" y="166" width="150" height="38" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+        <text x="435" y="183" font-weight="700" fill="#334155">Environment / data</text>
+        <text x="435" y="196" font-size="7.5" fill="#334155">&rarr; fix infra, re-run</text>
+
+        <rect x="560" y="66" width="140" height="38" rx="6" fill="#dcfce7" stroke="#86efac"/>
+        <text x="630" y="83" font-weight="700" fill="#166534">Healer</text>
+        <text x="630" y="96" font-size="7.5" fill="#166534">verifies live, PR for review</text>
+
+        <rect x="175" y="185" width="335" height="34" rx="6" fill="#faf5ff" stroke="#e9d5ff"/>
+        <text x="342" y="200" font-weight="700" fill="#6b21a8">Optimizer &mdash; periodic whole-suite review</text>
+        <text x="342" y="212" font-size="7.5" fill="#6b21a8">flake trends &middot; duplicate coverage &middot; slow specs &middot; tag hygiene &middot; Page Object drift</text>
+      </g>
+      <g stroke="#94a3b8" stroke-width="1.4" marker-end="url(#ah3)">
+        <line x1="130" y1="120" x2="173" y2="120"/>
+        <line x1="295" y1="115" x2="358" y2="36"/>
+        <line x1="295" y1="118" x2="358" y2="85"/>
+        <line x1="295" y1="122" x2="358" y2="132"/>
+        <line x1="295" y1="126" x2="358" y2="182"/>
+        <line x1="510" y1="85" x2="558" y2="85"/>
+      </g>
+      <path d="M630,104 L630,150 L75,150 L75,142" fill="none" stroke="#86efac" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#ah3)"/>
+      <text x="350" y="163" text-anchor="middle" font-size="7.5" fill="#166534">fixed test re-runs green</text>
+    </svg>
+    <figcaption>Figure 4 &mdash; Failure triage. The critical distinction is regression (the app is wrong) vs. drift (the test is stale).</figcaption>
+  </figure>
+
+  <table class="t-narrow">
+    <thead><tr><th style="width:16%">Assistant</th><th style="width:40%">Single responsibility</th><th>Never does</th></tr></thead>
+    <tbody>
+      <tr><td><b>Generator</b></td><td>Turns reviewed manual scenarios into specs that follow the conventions; verifies each step live first.</td><td>Run the full suite; refactor existing tests.</td></tr>
+      <tr><td><b>Runner</b></td><td>Executes a chosen scope and reports a compact pass/fail summary with artifact links.</td><td>Edit test code; guess at root cause.</td></tr>
+      <tr><td><b>Analyzer</b></td><td>Diagnoses a failure from its trace + recent diffs; classifies the root cause.</td><td>Change any code &mdash; diagnosis only.</td></tr>
+      <tr><td><b>Healer</b></td><td>Fixes locators for <em>confirmed</em> UI drift; verifies live; re-runs; opens a PR.</td><td>Touch a test classed as a regression; weaken an assertion to force green; push to main.</td></tr>
+      <tr><td><b>Optimizer</b></td><td>Periodic health review of the whole suite; proposes refactors.</td><td>Silently rewrite or delete tests.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <span class="label">The rule that protects value</span>
+    A locator fix is only legitimate if it makes the test reflect the app&rsquo;s <em>real, current</em>
+    behaviour. If making a test pass would require weakening <em>what it checks</em>, that is not
+    maintenance &mdash; that is a regression being hidden. It gets raised as a defect.
+  </div>
+</section>
+
+<!-- ============ 10. METRICS ============ -->
+<section class="section page break-before">
+  <h2>10 &nbsp; Metrics we report to you</h2>
+  <p>A short scorecard each cycle keeps the value visible and the decisions honest.</p>
+  <table class="t-narrow">
+    <thead><tr><th style="width:26%">Metric</th><th style="width:34%">Definition</th><th>Healthy target</th></tr></thead>
+    <tbody>
+      <tr><td>Critical-journey coverage</td><td>% of P1 flows with a passing automated <code>@smoke</code> test</td><td>100%</td></tr>
+      <tr><td>Smoke suite run time</td><td>Wall-clock for the <code>@smoke</code> tag on CI</td><td>&lt; 3 minutes</td></tr>
+      <tr><td>Pass rate (main)</td><td>Runs green on the first attempt over the last 30 days</td><td>&ge; 98%</td></tr>
+      <tr><td>Flake rate</td><td>Tests passing only on retry / <code>--repeat-each</code></td><td>&lt; 1% &mdash; above this, quarantine</td></tr>
+      <tr><td>Mean time to diagnose</td><td>Red result &rarr; classified root cause</td><td>&lt; 15 minutes (trace + Analyzer)</td></tr>
+      <tr><td>Cross-browser parity</td><td>Chromium / Firefox / WebKit all green per PR</td><td>Always</td></tr>
+      <tr><td>Escaped regressions</td><td>Defects found in production in an area we automate</td><td>0</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 11. ANTI-PATTERNS ============ -->
+<section class="section page break-before">
+  <h2>11 &nbsp; Anti-patterns we refuse to ship</h2>
+  <table class="t-narrow">
+    <thead><tr><th style="width:34%">Anti-pattern</th><th style="width:33%">Why it is poison</th><th>What we do instead</th></tr></thead>
+    <tbody>
+      <tr><td>Hard-coded sleeps (<code>waitForTimeout(3000)</code>)</td><td>Slow on fast machines, flaky on slow ones.</td><td>Playwright auto-waiting + web-first assertions (<code>expect(locator).toBeVisible()</code>).</td></tr>
+      <tr><td>Raw selectors in spec files</td><td>A UI change means editing dozens of tests.</td><td>All DOM access via Page Object methods.</td></tr>
+      <tr><td>Assertions inside Page Objects</td><td>Hides intent; couples &ldquo;what we check&rdquo; to &ldquo;how we click.&rdquo;</td><td>Assertions in the test; only <code>expectLoaded()</code> in the Page Object.</td></tr>
+      <tr><td>Tests that depend on each other</td><td>One failure cascades; can&rsquo;t run in parallel; order-sensitive.</td><td>Each test self-seeds state via fixtures.</td></tr>
+      <tr><td>Brittle CSS / deep XPath</td><td>Breaks on cosmetic markup changes.</td><td>Role, text and <code>data-test</code> locators.</td></tr>
+      <tr><td>Tag on the <code>describe</code> block</td><td>Silently over-scopes the smoke suite.</td><td>One tag per individual test.</td></tr>
+      <tr><td>Loosening an assertion to get green</td><td>Hides real regressions.</td><td>Classify as a defect; keep the test red until the app is fixed.</td></tr>
+      <tr><td>Secrets committed in code</td><td>Security exposure; can&rsquo;t rotate.</td><td>Environment variables locally; encrypted secrets in CI.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 12. EFFORT ============ -->
+<section class="section page break-before">
+  <h2>12 &nbsp; Effort &amp; timeline for a feature this size</h2>
+  <p>Indicative for a Checkout-sized feature: ~10 automated scenarios, 4 screens, all Page Objects either existing or straightforward. One engineer.</p>
+  <table class="t-narrow">
+    <thead><tr><th style="width:8%">Phase</th><th style="width:44%">Activity</th><th style="width:16%">Effort</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Intake, stakeholder walkthrough, feature brief</td><td>0.5 day</td><td>Feature brief</td></tr>
+      <tr><td>2</td><td>Manual scenario design + risk priority + review/sign-off</td><td>0.5 day</td><td>Signed-off scenario table</td></tr>
+      <tr><td>3</td><td>Live exploration, selector/behaviour confirmation</td><td>0.5 day</td><td>Annotated scenarios</td></tr>
+      <tr><td>4</td><td>Page Objects + fixtures + specs (~10 scenarios)</td><td>1.5&ndash;2 days</td><td>Code on a branch</td></tr>
+      <tr><td>5</td><td>Local verification, matrix run, flake hunt</td><td>0.5 day</td><td>Green matrix + stability record</td></tr>
+      <tr><td>6</td><td>PR, review cycle, CI green, merge</td><td>0.5 day</td><td>Merged coverage</td></tr>
+      <tr><td colspan="2" style="text-align:right"><b>Total</b></td><td><b>~4&ndash;4.5 days</b></td><td>Feature fully covered &amp; in CI</td></tr>
+    </tbody>
+  </table>
+  <p class="lead">The first feature on a brand-new area costs a little more (new Page Objects, new data). Every subsequent feature is faster because the foundation is reused &mdash; that compounding is the point of the architecture.</p>
+</section>
+
+<!-- ============ APPENDIX ============ -->
+<section class="section page break-before">
+  <h2>Appendix A &nbsp; Command reference</h2>
+  <table class="t-narrow">
+    <thead><tr><th style="width:38%">Command</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>npm run typecheck</code></td><td>TypeScript compile check &mdash; no emit.</td></tr>
+      <tr><td><code>npm run lint</code></td><td>ESLint over all <code>.ts</code>.</td></tr>
+      <tr><td><code>npm run test:chromium</code></td><td>Fast inner loop &mdash; single browser.</td></tr>
+      <tr><td><code>npm test</code></td><td>Full suite, all projects (Chromium / Firefox / WebKit / mobile-Chrome).</td></tr>
+      <tr><td><code>npm run test:smoke</code></td><td>Critical path only (<code>@smoke</code>).</td></tr>
+      <tr><td><code>npm run test:regression</code></td><td>Everything else (<code>@regression</code>).</td></tr>
+      <tr><td><code>npm run test:ui</code></td><td>Playwright interactive UI mode &mdash; best for debugging.</td></tr>
+      <tr><td><code>npx playwright test --repeat-each=5 tests/checkout.spec.ts</code></td><td>Stability / flake check on one spec.</td></tr>
+      <tr><td><code>npx playwright show-trace test-results/&hellip;/trace.zip</code></td><td>Open the trace viewer for a failure.</td></tr>
+      <tr><td><code>npm run codegen</code></td><td>Record actions/selectors against the live app.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 style="margin-top:26pt">Appendix B &nbsp; Glossary</h2>
+  <table class="t-narrow">
+    <tbody>
+      <tr><td style="width:22%"><b>E2E</b></td><td>End-to-end &mdash; a test driving the real UI through a complete user journey in a real browser.</td></tr>
+      <tr><td><b>POM</b></td><td>Page Object Model &mdash; a design pattern where each screen is a class that hides its selectors behind action methods.</td></tr>
+      <tr><td><b>Fixture</b></td><td>Reusable, declarative test setup Playwright injects into a test on request.</td></tr>
+      <tr><td><b>Flake</b></td><td>A test whose result varies without any code change &mdash; the enemy of trust.</td></tr>
+      <tr><td><b>Selector / locator</b></td><td>The rule that identifies an element on the page (a role, a <code>data-test</code> attribute, a CSS class).</td></tr>
+      <tr><td><b>UI drift</b></td><td>The app&rsquo;s markup changed in a way that breaks a locator, without the user-facing behaviour changing.</td></tr>
+      <tr><td><b>Trace</b></td><td>Playwright&rsquo;s recording of a test run &mdash; DOM snapshots, network, console, screenshots &mdash; replayable after the fact.</td></tr>
+      <tr><td><b>Smoke suite</b></td><td>The minimal set of tests that proves the product is fundamentally alive; runs on every change.</td></tr>
+      <tr><td><b>Matrix</b></td><td>Running the same suite across several browser configurations in parallel in CI.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="footnote">
+    Reference application: SauceDemo (<code>https://www.saucedemo.com</code>). Framework: Playwright + TypeScript,
+    Page Object Model, GitHub Actions CI. This document describes process and architecture; specific
+    selectors and counts reflect the reference app at time of writing and are confirmed live before use.
+  </p>
+</section>
+
+</body>
+</html>
