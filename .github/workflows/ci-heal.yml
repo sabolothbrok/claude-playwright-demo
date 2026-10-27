@@ -105,6 +105,7 @@ jobs:
         env:
           RUN: ${{ steps.triage.outputs.run }}
           SHA: ${{ steps.triage.outputs.sha }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -euo pipefail
           changed=$( { git diff --name-only; git ls-files --others --exclude-standard; } | sort -u \
@@ -120,6 +121,14 @@ jobs:
           if [[ -n "$bad" ]]; then
             printf 'Healer output rejected: it modified files outside `src/pages/`:\n\n```\n%s\n```\nNothing was pushed.\n' "$bad" > comment.md
             gh issue comment "$ISSUE" --body-file comment.md
+            exit 1
+          fi
+
+          # The branch and comment are public: refuse anything credential-like.
+          { git diff; cat heal-summary.md 2>/dev/null || true; } > "$RUNNER_TEMP/publish.txt"
+          if grep -qF -- "$ANTHROPIC_API_KEY" "$RUNNER_TEMP/publish.txt" \
+             || grep -qE 'sk-ant-[A-Za-z0-9_-]{10,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}' "$RUNNER_TEMP/publish.txt"; then
+            gh issue comment "$ISSUE" --body "Healer output rejected: it contained credential-like text. Nothing was pushed."
             exit 1
           fi
 

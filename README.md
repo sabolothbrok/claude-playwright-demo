@@ -176,6 +176,11 @@ is skipped). To try it on a past failure: *Actions → CI Triage → Run workflo
 with a failed run's ID. Only the repo owner/collaborators can trigger the
 Healer, and logs/diagnosis are treated as untrusted input throughout.
 
+Guardrails: triage is skipped while a `ci-failure` issue was updated in the last 20h
+(close the issue to reset; manual runs always go), and anything credential-like in
+the report, diff or summary blocks posting. Set a monthly spend limit on the API
+key in the Anthropic Console as the hard cap.
+
 ## License
 
 [MIT](LICENSE) © 2026 Jafeth Briceño
