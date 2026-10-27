@@ -155,6 +155,27 @@ the suite itself healthy as it grows. Invoke any of them directly by name
 (e.g. "use the test-generator agent to automate the checkout test cases")
 or let Claude pick the right one based on the task.
 
+### Agents in CI (human in the loop)
+
+Two workflows put the Analyzer and Healer behind the pipeline, with a person
+making every decision that changes code:
+
+1. **`ci-triage.yml`** — when *Playwright Tests* fails, the **Analyzer** reads
+   the logs, traces and recent commits and opens (or updates) a
+   `ci-failure` issue with the classification, root cause and a proposed
+   diff. The agent can only read files and write one report; the workflow
+   itself does the GitHub writes. GitHub notifies you by email/mobile.
+2. **`ci-heal.yml`** — if the Analyzer found fixable selector drift, reply
+   `/apply-fix` on the issue. The **Healer** reproduces the failure, edits
+   `src/pages/` only, re-runs the tests, and pushes a new `heal/…` branch
+   with a link to open the PR. It never touches `master`, and the workflow
+   rejects any change outside `src/pages/`.
+
+Setup: add an `ANTHROPIC_API_KEY` repository secret (without it the triage job
+is skipped). To try it on a past failure: *Actions → CI Triage → Run workflow*
+with a failed run's ID. Only the repo owner/collaborators can trigger the
+Healer, and logs/diagnosis are treated as untrusted input throughout.
+
 ## License
 
 [MIT](LICENSE) © 2026 Jafeth Briceño
