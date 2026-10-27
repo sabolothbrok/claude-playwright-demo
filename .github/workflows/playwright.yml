@@ -14,7 +14,9 @@ jobs:
   test:
     name: Run Playwright tests
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    # Pinned: `ubuntu-latest` moved to Ubuntu 26.04 on 2026-10-19, which broke
+    # the cached WebKit build (libicu74 vs libicu78) and made apt ~100x slower.
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -44,16 +46,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Resolve Playwright version
+      - name: Resolve Playwright version and OS
         id: playwright
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ matrix.browser }}-${{ steps.playwright.outputs.version }}
+          # Browser builds are distro-specific, so the OS release is part of the key.
+          key: ${{ steps.playwright.outputs.os }}-playwright-${{ matrix.browser }}-${{ steps.playwright.outputs.version }}
 
       - name: Install Playwright browser + OS deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
