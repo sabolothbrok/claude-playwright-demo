@@ -7,6 +7,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 /**
  * Playwright configuration for the SauceDemo (https://www.saucedemo.com/) E2E suite.
  * See https://playwright.dev/docs/test-configuration
+ *
+ * To point the suite at another e-commerce app, set BASE_URL in `.env` and
+ * adapt `src/pages/`; the structure below does not change.
  */
 export default defineConfig({
   testDir: './tests',
@@ -22,12 +25,15 @@ export default defineConfig({
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
     ['list'],
     ['junit', { outputFile: 'test-results/junit-results.xml' }],
+    ['allure-playwright', { resultsDir: 'allure-results' }],
     ...(process.env.CI ? [['github'] as const] : []),
   ],
   outputDir: 'test-results/artifacts',
 
   use: {
     baseURL: process.env.BASE_URL ?? 'https://www.saucedemo.com',
+    // SauceDemo marks elements with data-test, so getByTestId('x') targets [data-test="x"].
+    testIdAttribute: 'data-test',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -36,21 +42,9 @@ export default defineConfig({
   },
 
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 7'] },
-    },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
   ],
 });
