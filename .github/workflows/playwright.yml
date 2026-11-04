@@ -12,7 +12,10 @@ on:
 
 # Cancel superseded runs on a PR; never cancel a run on a branch or the nightly.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Pull requests: one run per PR; a newer push cancels the older run.
+  # Everything else (master pushes, nightly, manual): every run gets its own group, so a
+  # slow or stuck run can neither block nor cancel the runs for later commits.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -39,7 +42,7 @@ jobs:
   test:
     name: Run Playwright tests
     needs: quality
-    timeout-minutes: 30
+    timeout-minutes: 20
     # Pinned: `ubuntu-latest` moved to Ubuntu 26.04 on 2026-10-19, which broke
     # the cached WebKit build (libicu74 vs libicu78) and made apt ~100x slower.
     runs-on: ubuntu-24.04
@@ -77,6 +80,7 @@ jobs:
         run: |
           echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
           echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
+          echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -86,13 +90,68 @@ jobs:
           # Browser builds are distro-specific, so the OS release is part of the key.
           key: ${{ steps.playwright.outputs.os }}-playwright-${{ matrix.browser }}-${{ steps.playwright.outputs.version }}
 
+      # The OS packages Playwright needs are downloaded from one Ubuntu mirror on every job
+      # (WebKit ~114 MB, the others ~25 MB), and that mirror is sometimes very slow (a WebKit
+      # job once spent 9.5 minutes here). Cache the downloaded .deb files: apt verifies each
+      # against the package index, so a stale or missing file is simply downloaded again.
+      - name: Restore cached OS packages
+        id: apt-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/apt-debs
+          # Keyed by week, not by Playwright version: the system packages barely change between
+          # versions, so a version bump still restores last week's packages (restore-keys) instead
+          # of starting cold, and the cache is refreshed weekly so it cannot go stale for long.
+          key: apt-${{ steps.playwright.outputs.os }}-${{ matrix.browser }}-${{ steps.playwright.outputs.week }}
+          restore-keys: |
+            apt-${{ steps.playwright.outputs.os }}-${{ matrix.browser }}-
+
+      - name: Seed apt with cached packages
+        run: |
+          if compgen -G "$HOME/apt-debs/*.deb" > /dev/null; then
+            sudo cp -n "$HOME"/apt-debs/*.deb /var/cache/apt/archives/
+            echo "seeded apt with $(ls "$HOME"/apt-debs/*.deb | wc -l) cached packages"
+          else
+            echo "no cached packages (cache miss)"
+          fi
+
+      # The mirror is sometimes very slow or hangs (a master run sat 30 minutes in this step).
+      # Make apt drop a silent connection after 20s, and below each install attempt is killed
+      # after 4 minutes and retried (up to 3 times) instead of waiting for the job timeout.
+      - name: Make apt fail fast and retry
+        run: |
+          printf 'Acquire::http::Timeout "20";\nAcquire::https::Timeout "20";\nAcquire::Retries "3";\n' \
+            | sudo tee /etc/apt/apt.conf.d/99ci-resilience > /dev/null
+
       - name: Install Playwright browser + OS deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            if timeout -k 10 240 npx playwright install --with-deps ${{ matrix.browser }}; then exit 0; fi
+            echo "::warning::install attempt $attempt failed or took over 4 min; retrying"
+            sudo dpkg --configure -a || true
+          done
+          exit 1
 
       - name: Install Playwright OS deps (cached browser)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps ${{ matrix.browser }}
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            if timeout -k 10 240 npx playwright install-deps ${{ matrix.browser }}; then exit 0; fi
+            echo "::warning::install-deps attempt $attempt failed or took over 4 min; retrying"
+            sudo dpkg --configure -a || true
+          done
+          exit 1
+
+      - name: Keep downloaded packages for next time
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$HOME/apt-debs"
+          sudo cp -n /var/cache/apt/archives/*.deb "$HOME/apt-debs/" || true
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/apt-debs"
+          echo "kept $(ls "$HOME"/apt-debs | wc -l) packages ($(du -sh "$HOME/apt-debs" | cut -f1)) for the next run"
 
       - name: Run Playwright tests
         run: npx playwright test --project=${{ matrix.project }}
