@@ -4,15 +4,39 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+      day: monday
+    # Every update runs the full CI matrix, so keep the number of open PRs small.
+    open-pull-requests-limit: 3
     groups:
+      # Playwright bumps change the browser binaries: review them on their own.
       playwright:
         patterns: ['@playwright/*', 'playwright*']
-      lint-and-format:
-        patterns: ['eslint*', '@typescript-eslint/*', 'prettier']
-      reporting:
-        patterns: ['allure*']
+      # Everything else that is safe (minor/patch) lands as ONE PR and ONE CI run.
+      minor-and-patch:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+    # Major versions need a deliberate migration, not an automatic PR that fails CI
+    # and holds up the safe updates. Revisit these on purpose (e.g. once a quarter).
+    ignore:
+      # ESLint 8 -> 10 needs the flat-config migration. 8.x is end-of-life, so this
+      # is real debt: do it deliberately, along with @typescript-eslint.
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@typescript-eslint/*'
+        update-types: ['version-update:semver-major']
+      # CI runs Node 22; the types must match the runtime, not the latest Node.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      # TypeScript majors can change type-checking and tooling support.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      - dependency-name: dotenv
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
