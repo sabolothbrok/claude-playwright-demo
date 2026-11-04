@@ -16,10 +16,10 @@ export class InventoryPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.inventoryList = page.locator('.inventory_list');
-    this.inventoryItems = page.locator('.inventory_item');
+    this.inventoryList = page.getByTestId('inventory-list');
+    this.inventoryItems = page.getByTestId('inventory-item');
     this.sortDropdown = page.getByTestId('product-sort-container');
-    this.pageTitle = page.locator('.title');
+    this.pageTitle = page.getByTestId('title');
   }
 
   async goto(): Promise<void> {
@@ -36,17 +36,17 @@ export class InventoryPage extends BasePage {
   }
 
   async getItemNames(): Promise<string[]> {
-    return this.inventoryItems.locator('.inventory_item_name').allInnerTexts();
+    return this.inventoryItems.getByTestId('inventory-item-name').allInnerTexts();
   }
 
   async getItemPrices(): Promise<number[]> {
-    const texts = await this.inventoryItems.locator('.inventory_item_price').allInnerTexts();
+    const texts = await this.inventoryItems.getByTestId('inventory-item-price').allInnerTexts();
     return texts.map((t) => Number(t.replace('$', '')));
   }
 
   private itemCard(productName: string): Locator {
     return this.inventoryItems.filter({
-      has: this.page.locator('.inventory_item_name', { hasText: productName }),
+      has: this.page.getByTestId('inventory-item-name').filter({ hasText: productName }),
     });
   }
 
@@ -63,7 +63,7 @@ export class InventoryPage extends BasePage {
   async openProductByName(productName: string): Promise<void> {
     await this.inventoryItems
       .filter({ hasText: productName })
-      .locator('.inventory_item_name')
+      .getByTestId('inventory-item-name')
       .click();
   }
 

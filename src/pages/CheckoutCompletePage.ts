@@ -10,10 +10,10 @@ export class CheckoutCompletePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.completeHeader = page.locator('.complete-header');
-    this.completeText = page.locator('.complete-text');
-    this.backHomeButton = page.locator('#back-to-products');
-    this.ponyExpressImage = page.locator('.pony_express');
+    this.completeHeader = page.getByTestId('complete-header');
+    this.completeText = page.getByTestId('complete-text');
+    this.backHomeButton = page.getByRole('button', { name: 'Back Home', exact: true });
+    this.ponyExpressImage = page.getByTestId('pony-express');
   }
 
   async expectLoaded(): Promise<void> {

@@ -98,8 +98,14 @@ playwright.config.ts               Projects, reporters, timeouts, baseURL
   so each public method is one readable step in the reports. Name methods as user
   actions ("addToCartByName", "continueToOverview"). Never pass secrets as method
   arguments unless the method name contains login/password/token (those args are hidden).
-- Product names live in `src/data/products.ts`; locators prefer `getByRole` /
-  `getByTestId` (`testIdAttribute` is `data-test`).
+- Product names live in `src/data/products.ts`. Lint (`playwright/no-raw-locators` on
+  `src/pages/**`) rejects `page.locator('#id' | '.class')`. Prefer, in order:
+  `getByRole` → `getByLabel` / `getByPlaceholder` / `getByText` → `getByTestId`
+  (`testIdAttribute` is `data-test`). If an element has none of these, use
+  `page.locator()` with an `eslint-disable-next-line playwright/no-raw-locators -- <reason>`.
+- Beware shared test ids: SauceDemo reuses `inventory-item-name` on the list, cart and
+  detail pages, and the list stays in the DOM briefly after an SPA route change. Each
+  `expectLoaded()` should wait for something only its own page has before using them.
 - A new spec file needs an entry in `src/utils/allure-labels.ts` so it groups under
   a feature in the Allure report.
 

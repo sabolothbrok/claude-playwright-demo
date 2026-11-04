@@ -13,17 +13,21 @@ export class ProductDetailPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.itemName = page.locator('.inventory_details_name');
-    this.itemDescription = page.locator('.inventory_details_desc');
-    this.itemPrice = page.locator('.inventory_details_price');
-    this.itemImage = page.locator('.inventory_details_img');
+    this.itemName = page.getByTestId('inventory-item-name');
+    this.itemDescription = page.getByTestId('inventory-item-desc');
+    this.itemPrice = page.getByTestId('inventory-item-price');
+    this.itemImage = page.getByTestId('inventory-item').getByRole('img');
     this.addToCartButton = page.getByRole('button', { name: /^Add to cart$/ });
     this.removeButton = page.getByRole('button', { name: /^Remove$/ });
-    this.backButton = page.getByTestId('back-to-products');
+    this.backButton = page.getByRole('button', { name: 'Back to products' });
   }
 
   async expectLoaded(): Promise<void> {
     await expect(this.page).toHaveURL(/inventory-item\.html/);
+    // The URL changes before the list unmounts, and the app reuses the same data-test
+    // ids (inventory-item-name, ...) on the list page. Wait for the Back button, which
+    // only the detail page has, so the shared ids below match exactly one element.
+    await expect(this.backButton).toBeVisible();
     await expect(this.itemName).toBeVisible();
   }
 

@@ -54,6 +54,13 @@
           }
         ]
       }
+    },
+    {
+      "files": ["src/pages/**/*.ts"],
+      "plugins": ["playwright"],
+      "rules": {
+        "playwright/no-raw-locators": "error"
+      }
     }
   ]
 }

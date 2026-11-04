@@ -32,7 +32,9 @@ implementation → CI/CD → maintenance.
   class per screen, assertions kept out of page objects except for
   `expectLoaded()` guards. The rules are **enforced by lint**
   (`eslint-plugin-playwright` plus custom rules), so a spec that clicks a
-  selector or calls `waitForTimeout` fails the build instead of relying on review.
+  selector, calls `waitForTimeout`, or a Page Object that uses a CSS `#id`/`.class`
+  locator fails the build instead of relying on review. Locators follow Playwright's
+  order: `getByRole` → `getByLabel`/`getByPlaceholder`/`getByText` → `getByTestId`.
 - **Custom fixtures** (`src/fixtures/pages.fixture.ts`) that inject
   ready-to-use page objects and an `authenticatedPage` fixture that skips
   repeating the login flow across tests.
@@ -203,6 +205,12 @@ Choices made on evidence, including the ones that were rejected:
 - **`ubuntu-latest` is pinned.** The image moved to Ubuntu 26.04, which broke the
   cached WebKit build (a stale browser binary) and made dependency installs take
   ~9 minutes instead of seconds; pinning fixed both.
+- **Locators migrated from CSS to role/placeholder/test-id.** Repeating each test 5×
+  caught a race the migration introduced (a shared test id matched the old list page
+  during navigation, ~12% failure); `expectLoaded()` now waits for a page-unique
+  element first. Result: 150/150 on repeat. The same pass found that SauceDemo's open
+  sidebar is `aria-hidden`, so role locators cannot see it — an accessibility defect in
+  the app, and the reason those few links use `data-test`.
 - **Agents may not write until a person approves.** The Planner is read-only by
   construction; an instruction ("please wait for approval") was not enough on its
   own.

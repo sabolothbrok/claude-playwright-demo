@@ -10,10 +10,13 @@ export class CartPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.cartList = page.locator('.cart_list');
-    this.cartItems = page.locator('.cart_item');
-    this.checkoutButton = page.getByTestId('checkout');
-    this.continueShoppingButton = page.getByTestId('continue-shopping');
+    this.cartList = page.getByTestId('cart-list');
+    this.cartItems = page.getByTestId('inventory-item');
+    this.checkoutButton = page.getByRole('button', { name: 'Checkout', exact: true });
+    this.continueShoppingButton = page.getByRole('button', {
+      name: 'Continue Shopping',
+      exact: true,
+    });
   }
 
   async expectLoaded(): Promise<void> {
@@ -22,7 +25,7 @@ export class CartPage extends BasePage {
   }
 
   async getItemNames(): Promise<string[]> {
-    return this.cartItems.locator('.inventory_item_name').allInnerTexts();
+    return this.cartItems.getByTestId('inventory-item-name').allInnerTexts();
   }
 
   async getItemCount(): Promise<number> {
