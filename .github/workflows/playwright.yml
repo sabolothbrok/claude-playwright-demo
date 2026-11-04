@@ -89,6 +89,26 @@ jobs:
           # Browser builds are distro-specific, so the OS release is part of the key.
           key: ${{ steps.playwright.outputs.os }}-playwright-${{ matrix.browser }}-${{ steps.playwright.outputs.version }}
 
+      # The OS packages Playwright needs are downloaded from one Ubuntu mirror on every job
+      # (WebKit ~114 MB, the others ~25 MB), and that mirror is sometimes very slow (a WebKit
+      # job once spent 9.5 minutes here). Cache the downloaded .deb files: apt verifies each
+      # against the package index, so a stale or missing file is simply downloaded again.
+      - name: Restore cached OS packages
+        id: apt-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/apt-debs
+          key: apt-${{ steps.playwright.outputs.os }}-${{ matrix.browser }}-${{ steps.playwright.outputs.version }}
+
+      - name: Seed apt with cached packages
+        run: |
+          if compgen -G "$HOME/apt-debs/*.deb" > /dev/null; then
+            sudo cp -n "$HOME"/apt-debs/*.deb /var/cache/apt/archives/
+            echo "seeded apt with $(ls "$HOME"/apt-debs/*.deb | wc -l) cached packages"
+          else
+            echo "no cached packages (cache miss)"
+          fi
+
       # apt downloads on a runner occasionally stall (a Chromium job once sat 7+ minutes in
       # this step while the same step took ~1 minute on the other jobs). Make apt give up on
       # a silent connection after 20s and retry on a fresh one, and cap the step as a backstop.
@@ -106,6 +126,14 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         timeout-minutes: 8
         run: npx playwright install-deps ${{ matrix.browser }}
+
+      - name: Keep downloaded packages for next time
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$HOME/apt-debs"
+          sudo cp -n /var/cache/apt/archives/*.deb "$HOME/apt-debs/" || true
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/apt-debs"
+          echo "kept $(ls "$HOME"/apt-debs | wc -l) packages ($(du -sh "$HOME/apt-debs" | cut -f1)) for the next run"
 
       - name: Run Playwright tests
         run: npx playwright test --project=${{ matrix.project }}
