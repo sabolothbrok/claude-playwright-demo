@@ -87,6 +87,22 @@ playwright.config.ts               Projects, reporters, timeouts, baseURL
 8. **New user-facing data (credentials, checkout info) goes in `src/data/`**,
    never hardcoded inline in a test.
 
+## Enforced by tooling (not just convention)
+
+- `npm run check` = typecheck + lint + Prettier check; CI runs it first and the
+  browser matrix does not start if it fails.
+- Lint (`.eslintrc.json`, `tests/**` override) rejects `page.*`, raw locators,
+  UI actions (`.click()`, `.fill()`...) and `waitForTimeout` in specs. Add a Page
+  Object method instead.
+- Page Objects handed to tests are wrapped by `withSteps` (`src/utils/steps.ts`),
+  so each public method is one readable step in the reports. Name methods as user
+  actions ("addToCartByName", "continueToOverview"). Never pass secrets as method
+  arguments unless the method name contains login/password/token (those args are hidden).
+- Product names live in `src/data/products.ts`; locators prefer `getByRole` /
+  `getByTestId` (`testIdAttribute` is `data-test`).
+- A new spec file needs an entry in `src/utils/allure-labels.ts` so it groups under
+  a feature in the Allure report.
+
 ## Using the Playwright MCP server to explore the app
 
 This repo registers the Playwright MCP server in `.mcp.json`
