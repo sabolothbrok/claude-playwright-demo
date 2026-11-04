@@ -241,7 +241,7 @@
       <li>Choosing what to automate <span class="sub">&mdash; risk, the test pyramid, smoke vs. regression</span></li>
       <li>Framework architecture <span class="sub">&mdash; how the code is organised so it stays cheap to change</span></li>
       <li>Worked example: the Checkout feature <span class="sub">&mdash; the strategy applied end to end</span></li>
-      <li>Quality gates &amp; Definition of Done</li>
+      <li>Pre-flight checks &amp; Definition of Done</li>
       <li>CI/CD pipeline</li>
       <li>Maintenance model <span class="sub">&mdash; keeping green suites green</span></li>
       <li>Metrics we report to you</li>
@@ -285,7 +285,7 @@
         <li>Every manual step is <strong>verified against the live application</strong> before it becomes code.</li>
         <li>Tests are <strong>isolated</strong>: each one sets up its own state and can run in parallel.</li>
         <li>All UI access goes through <strong>Page Objects</strong> &mdash; when a selector changes, we fix it in one place.</li>
-        <li>Quality gates (type-check, lint, cross-browser run) block anything substandard from merging.</li>
+        <li>Pre-flight checks (type-check, lint, cross-browser run) block anything substandard from merging.</li>
         <li>A defined maintenance model separates <em>&ldquo;the app broke&rdquo;</em> from <em>&ldquo;the test needs updating.&rdquo;</em></li>
       </ul>
     </div>
@@ -699,7 +699,7 @@
 
 <!-- ============ 7. DoD ============ -->
 <section class="section page break-before">
-  <h2>7 &nbsp; Quality gates &amp; Definition of Done</h2>
+  <h2>7 &nbsp; Pre-flight checks &amp; Definition of Done</h2>
   <p>A feature&rsquo;s automation is &ldquo;done&rdquo; only when <em>every</em> box below is ticked. This list is the contract.</p>
   <div class="grid-2">
     <div>
