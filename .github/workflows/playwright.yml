@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  quality:
-    name: Quality gates (typecheck, lint, format)
+  preflight:
+    name: Pre-flight checks (typecheck, lint, format)
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     steps:
@@ -41,7 +41,7 @@ jobs:
 
   test:
     name: Run Playwright tests
-    needs: quality
+    needs: preflight
     timeout-minutes: 20
     # Pinned: `ubuntu-latest` moved to Ubuntu 26.04 on 2026-10-19, which broke
     # the cached WebKit build (libicu74 vs libicu78) and made apt ~100x slower.
@@ -186,10 +186,10 @@ jobs:
 
   report:
     name: Merged quality report
-    needs: [quality, test]
+    needs: [preflight, test]
     # Run even when some browsers failed (that is when the report matters most),
-    # but not when the quality gate failed and the browser matrix never started.
-    if: ${{ !cancelled() && needs.quality.result == 'success' }}
+    # but not when the pre-flight checks failed and the browser matrix never started.
+    if: ${{ !cancelled() && needs.preflight.result == 'success' }}
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     steps:

@@ -11,7 +11,7 @@ Page Object Model, a documented test strategy, and a CI pipeline that
 actually gates the code — not a single-file smoke test.
 
 📄 **[Read the full E2E Test Automation Strategy →](docs/E2E-Test-Automation-Strategy.pdf)**
-(risk-based prioritization, the test pyramid, quality gates, CI/CD design,
+(risk-based prioritization, the test pyramid, pre-flight checks, CI/CD design,
 maintenance model, and a worked example from brief to shipped test.)
 
 ## About the author
@@ -41,7 +41,7 @@ implementation → CI/CD → maintenance.
 - **Cross-browser + mobile coverage**: Chromium, Firefox, WebKit, and a
   mobile Chrome (Pixel 7) project, all exercised in CI.
 - **A real CI/CD pipeline**, not just "tests exist": typecheck/lint/format
-  gates that block the run, a 4-way browser matrix, cached browser binaries,
+  checks that block the run, a 4-way browser matrix, cached browser binaries,
   trace/video/screenshot artifacts on failure, one merged
   [Allure report](#reporting), and a nightly scheduled run — see
   [CI](#cicd-pipeline) below.
@@ -77,7 +77,7 @@ implementation → CI/CD → maintenance.
 docs/                                         Test strategy (PDF + HTML)
 .claude/skills/playwright-testing/SKILL.md    Claude Code skill: framework conventions
 .claude/agents/                               Planner/Generator/Runner/Analyzer/Healer/Optimizer subagents
-.github/workflows/playwright.yml              CI: quality gates, browser matrix, merged report
+.github/workflows/playwright.yml              CI: pre-flight checks, browser matrix, merged report
 .github/                                      Dependabot, PR template, CODEOWNERS
 allurerc.mjs                                  Report config (title, grouping by feature)
 src/
@@ -156,7 +156,7 @@ persistent (e.g. GitHub Pages); that is not enabled yet.
 Every push/PR to `main`/`master` runs three stages on GitHub Actions, plus a
 nightly scheduled run and manual dispatch:
 
-1. **Quality gates** — typecheck, lint and format check. If they fail, the
+1. **Pre-flight checks** — typecheck, lint and format check. If they fail, the
    browser matrix never starts.
 2. **Browser matrix** — the full suite on **chromium / firefox / webkit /
    mobile-chrome**, with cached browser binaries and trace/video/screenshot
