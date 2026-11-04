@@ -12,12 +12,12 @@ export class CheckoutStepTwoPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.cartItems = page.locator('.cart_item');
-    this.subtotalLabel = page.locator('.summary_subtotal_label');
-    this.taxLabel = page.locator('.summary_tax_label');
-    this.totalLabel = page.locator('.summary_total_label');
-    this.finishButton = page.locator('#finish');
-    this.cancelButton = page.locator('#cancel');
+    this.cartItems = page.getByTestId('inventory-item');
+    this.subtotalLabel = page.getByTestId('subtotal-label');
+    this.taxLabel = page.getByTestId('tax-label');
+    this.totalLabel = page.getByTestId('total-label');
+    this.finishButton = page.getByRole('button', { name: 'Finish', exact: true });
+    this.cancelButton = page.getByRole('button', { name: 'Cancel', exact: true });
   }
 
   async expectLoaded(): Promise<void> {

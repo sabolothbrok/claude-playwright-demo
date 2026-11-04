@@ -22,16 +22,18 @@ export abstract class BasePage {
 
   protected constructor(page: Page) {
     this.page = page;
-    this.burgerMenuButton = page.locator('#react-burger-menu-btn');
-    this.closeMenuButton = page.locator('#react-burger-cross-btn');
-    this.logoutLink = page.locator('#logout_sidebar_link');
-    this.resetAppStateLink = page.locator('#reset_sidebar_link');
-    this.allItemsLink = page.locator('#inventory_sidebar_link');
-    this.aboutLink = page.locator('#about_sidebar_link');
-    this.cartLink = page.locator('.shopping_cart_link');
-    this.cartBadge = page.locator('.shopping_cart_badge');
+    this.burgerMenuButton = page.getByRole('button', { name: 'Open Menu' });
+    this.closeMenuButton = page.getByRole('button', { name: 'Close Menu' });
+    // The open sidebar is aria-hidden in the app (an accessibility defect), so role
+    // locators cannot see these links; fall back to the app's data-test ids.
+    this.logoutLink = page.getByTestId('logout-sidebar-link');
+    this.resetAppStateLink = page.getByTestId('reset-sidebar-link');
+    this.allItemsLink = page.getByTestId('inventory-sidebar-link');
+    this.aboutLink = page.getByTestId('about-sidebar-link');
+    this.cartLink = page.getByTestId('shopping-cart-link');
+    this.cartBadge = page.getByTestId('shopping-cart-badge');
     this.errorMessage = page.getByTestId('error');
-    this.errorCloseButton = page.locator('.error-button');
+    this.errorCloseButton = page.getByTestId('error-button');
   }
 
   /** Navigate directly to a path relative to baseURL. */
@@ -41,7 +43,7 @@ export abstract class BasePage {
 
   /** Current page title as rendered in the DOM (not the browser tab title). */
   async getPageTitle(): Promise<string> {
-    return this.page.locator('.title').innerText();
+    return this.page.getByTestId('title').innerText();
   }
 
   async reload(): Promise<void> {

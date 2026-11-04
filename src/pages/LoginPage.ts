@@ -16,12 +16,12 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.locator('#user-name');
-    this.passwordInput = page.locator('#password');
-    this.loginButton = page.locator('#login-button');
+    this.usernameInput = page.getByPlaceholder('Username');
+    this.passwordInput = page.getByPlaceholder('Password');
+    this.loginButton = page.getByRole('button', { name: 'Login' });
     this.errorMessage = page.getByTestId('error');
-    this.errorCloseButton = page.locator('.error-button');
-    this.logo = page.locator('.login_logo');
+    this.errorCloseButton = page.getByTestId('error-button');
+    this.logo = page.getByText('Swag Labs');
   }
 
   async goto(): Promise<void> {
