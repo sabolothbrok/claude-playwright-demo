@@ -30,8 +30,6 @@ updates:
       # TypeScript majors can change type-checking and tooling support.
       - dependency-name: typescript
         update-types: ['version-update:semver-major']
-      - dependency-name: dotenv
-        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
