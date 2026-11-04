@@ -42,7 +42,7 @@ jobs:
   test:
     name: Run Playwright tests
     needs: quality
-    timeout-minutes: 15
+    timeout-minutes: 20
     # Pinned: `ubuntu-latest` moved to Ubuntu 26.04 on 2026-10-19, which broke
     # the cached WebKit build (libicu74 vs libicu78) and made apt ~100x slower.
     runs-on: ubuntu-24.04
@@ -80,6 +80,7 @@ jobs:
         run: |
           echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
           echo "os=$(. /etc/os-release && echo "$ID-$VERSION_ID")" >> "$GITHUB_OUTPUT"
+          echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -98,7 +99,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/apt-debs
-          key: apt-${{ steps.playwright.outputs.os }}-${{ matrix.browser }}-${{ steps.playwright.outputs.version }}
+          # Keyed by week, not by Playwright version: the system packages barely change between
+          # versions, so a version bump still restores last week's packages (restore-keys) instead
+          # of starting cold, and the cache is refreshed weekly so it cannot go stale for long.
+          key: apt-${{ steps.playwright.outputs.os }}-${{ matrix.browser }}-${{ steps.playwright.outputs.week }}
+          restore-keys: |
+            apt-${{ steps.playwright.outputs.os }}-${{ matrix.browser }}-
 
       - name: Seed apt with cached packages
         run: |
@@ -109,9 +115,9 @@ jobs:
             echo "no cached packages (cache miss)"
           fi
 
-      # apt downloads on a runner occasionally stall (a Chromium job once sat 7+ minutes in
-      # this step while the same step took ~1 minute on the other jobs). Make apt give up on
-      # a silent connection after 20s and retry on a fresh one, and cap the step as a backstop.
+      # The mirror is sometimes very slow or hangs (a master run sat 30 minutes in this step).
+      # Make apt drop a silent connection after 20s, and below each install attempt is killed
+      # after 4 minutes and retried (up to 3 times) instead of waiting for the job timeout.
       - name: Make apt fail fast and retry
         run: |
           printf 'Acquire::http::Timeout "20";\nAcquire::https::Timeout "20";\nAcquire::Retries "3";\n' \
@@ -119,13 +125,25 @@ jobs:
 
       - name: Install Playwright browser + OS deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        timeout-minutes: 8
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            if timeout -k 10 240 npx playwright install --with-deps ${{ matrix.browser }}; then exit 0; fi
+            echo "::warning::install attempt $attempt failed or took over 4 min; retrying"
+            sudo dpkg --configure -a || true
+          done
+          exit 1
 
       - name: Install Playwright OS deps (cached browser)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        timeout-minutes: 8
-        run: npx playwright install-deps ${{ matrix.browser }}
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            if timeout -k 10 240 npx playwright install-deps ${{ matrix.browser }}; then exit 0; fi
+            echo "::warning::install-deps attempt $attempt failed or took over 4 min; retrying"
+            sudo dpkg --configure -a || true
+          done
+          exit 1
 
       - name: Keep downloaded packages for next time
         if: steps.apt-cache.outputs.cache-hit != 'true'
