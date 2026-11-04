@@ -18,7 +18,7 @@ export class InventoryPage extends BasePage {
     super(page);
     this.inventoryList = page.locator('.inventory_list');
     this.inventoryItems = page.locator('.inventory_item');
-    this.sortDropdown = page.locator('[data-test="product-sort-container"]');
+    this.sortDropdown = page.getByTestId('product-sort-container');
     this.pageTitle = page.locator('.title');
   }
 

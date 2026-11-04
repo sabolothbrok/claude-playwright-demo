@@ -12,8 +12,8 @@ export class CartPage extends BasePage {
     super(page);
     this.cartList = page.locator('.cart_list');
     this.cartItems = page.locator('.cart_item');
-    this.checkoutButton = page.locator('[data-test="checkout"]');
-    this.continueShoppingButton = page.locator('[data-test="continue-shopping"]');
+    this.checkoutButton = page.getByTestId('checkout');
+    this.continueShoppingButton = page.getByTestId('continue-shopping');
   }
 
   async expectLoaded(): Promise<void> {

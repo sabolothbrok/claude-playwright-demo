@@ -1,17 +1,18 @@
 import { test, expect } from '@fixtures/pages.fixture';
+import { products } from '@data/products';
 
 test.describe('Cart', () => {
   test('cart reflects items added from the inventory page @regression', async ({
     authenticatedPage,
     cartPage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
-    await authenticatedPage.addToCartByName('Sauce Labs Bike Light');
+    await authenticatedPage.addToCartByName(products.backpack);
+    await authenticatedPage.addToCartByName(products.bikeLight);
     await authenticatedPage.goToCart();
 
     await cartPage.expectLoaded();
     const names = await cartPage.getItemNames();
-    expect(names).toEqual(expect.arrayContaining(['Sauce Labs Backpack', 'Sauce Labs Bike Light']));
+    expect(names).toEqual(expect.arrayContaining([products.backpack, products.bikeLight]));
     expect(await cartPage.getItemCount()).toBe(2);
   });
 
@@ -19,11 +20,11 @@ test.describe('Cart', () => {
     authenticatedPage,
     cartPage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+    await authenticatedPage.addToCartByName(products.backpack);
     await authenticatedPage.goToCart();
     await cartPage.expectLoaded();
 
-    await cartPage.removeItemByName('Sauce Labs Backpack');
+    await cartPage.removeItemByName(products.backpack);
     expect(await cartPage.getItemCount()).toBe(0);
     await expect(cartPage.cartBadge).toBeHidden();
   });
@@ -38,7 +39,7 @@ test.describe('Cart', () => {
     await authenticatedPage.expectLoaded();
   });
 
-  test('empty cart cannot proceed with a non-existent checkout button click @regression', async ({
+  test('checkout stays available when the cart is empty (current app behavior) @regression', async ({
     authenticatedPage,
     cartPage,
   }) => {

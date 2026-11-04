@@ -30,7 +30,7 @@ export abstract class BasePage {
     this.aboutLink = page.locator('#about_sidebar_link');
     this.cartLink = page.locator('.shopping_cart_link');
     this.cartBadge = page.locator('.shopping_cart_badge');
-    this.errorMessage = page.locator('[data-test="error"]');
+    this.errorMessage = page.getByTestId('error');
     this.errorCloseButton = page.locator('.error-button');
   }
 
@@ -42,6 +42,10 @@ export abstract class BasePage {
   /** Current page title as rendered in the DOM (not the browser tab title). */
   async getPageTitle(): Promise<string> {
     return this.page.locator('.title').innerText();
+  }
+
+  async reload(): Promise<void> {
+    await this.page.reload();
   }
 
   async openBurgerMenu(): Promise<void> {

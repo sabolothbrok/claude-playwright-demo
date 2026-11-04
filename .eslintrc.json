@@ -7,19 +7,53 @@
     "project": "./tsconfig.json"
   },
   "plugins": ["@typescript-eslint"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "env": {
     "node": true,
     "es2022": true
   },
   "rules": {
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
     "no-console": "off"
   },
-  "ignorePatterns": ["node_modules", "dist", "playwright-report", "test-results"]
+  "ignorePatterns": ["node_modules", "dist", "playwright-report", "test-results"],
+  "overrides": [
+    {
+      "files": ["tests/**/*.ts"],
+      "extends": ["plugin:playwright/recommended"],
+      "rules": {
+        "playwright/no-raw-locators": "error",
+        "playwright/no-wait-for-timeout": "error",
+        "playwright/no-force-option": "error",
+        "playwright/no-conditional-in-test": "error",
+        "playwright/prefer-web-first-assertions": "error",
+        "playwright/require-top-level-describe": "error",
+        "playwright/valid-title": "error",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.property.name=/^(click|dblclick|fill|check|uncheck|selectOption|press|type|hover)$/]",
+            "message": "Do not drive the UI from a spec. Add a Page Object method and call that."
+          },
+          {
+            "selector": "CallExpression[callee.object.name='page']",
+            "message": "Do not use page.* in a spec. Go through a Page Object."
+          }
+        ],
+        "playwright/expect-expect": [
+          "warn",
+          {
+            "assertFunctionNames": ["expectLoaded"]
+          }
+        ]
+      }
+    }
+  ]
 }

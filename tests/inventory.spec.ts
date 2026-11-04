@@ -1,30 +1,29 @@
 import { test, expect } from '@fixtures/pages.fixture';
+import { products } from '@data/products';
 
 test.describe('Inventory', () => {
   test('displays all six products @smoke', async ({ authenticatedPage }) => {
     await expect(authenticatedPage.inventoryItems).toHaveCount(6);
   });
 
-  test('can add a product to the cart from the list @regression', async ({
-    authenticatedPage,
-  }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+  test('can add a product to the cart from the list @regression', async ({ authenticatedPage }) => {
+    await authenticatedPage.addToCartByName(products.backpack);
     await expect(authenticatedPage.cartBadge).toHaveText('1');
   });
 
   test('can remove a product after adding it @regression', async ({ authenticatedPage }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+    await authenticatedPage.addToCartByName(products.backpack);
     await expect(authenticatedPage.cartBadge).toHaveText('1');
-    await authenticatedPage.removeFromCartByName('Sauce Labs Backpack');
+    await authenticatedPage.removeFromCartByName(products.backpack);
     await expect(authenticatedPage.cartBadge).toBeHidden();
   });
 
   test('adding multiple products increments the cart badge @regression', async ({
     authenticatedPage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
-    await authenticatedPage.addToCartByName('Sauce Labs Bike Light');
-    await authenticatedPage.addToCartByName('Sauce Labs Bolt T-Shirt');
+    await authenticatedPage.addToCartByName(products.backpack);
+    await authenticatedPage.addToCartByName(products.bikeLight);
+    await authenticatedPage.addToCartByName(products.boltTShirt);
     await expect(authenticatedPage.cartBadge).toHaveText('3');
   });
 
@@ -60,9 +59,9 @@ test.describe('Inventory', () => {
     authenticatedPage,
     productDetailPage,
   }) => {
-    await authenticatedPage.openProductByName('Sauce Labs Backpack');
+    await authenticatedPage.openProductByName(products.backpack);
     await productDetailPage.expectLoaded();
-    await expect(productDetailPage.itemName).toHaveText('Sauce Labs Backpack');
+    await expect(productDetailPage.itemName).toHaveText(products.backpack);
     await productDetailPage.backToProducts();
     await authenticatedPage.expectLoaded();
   });

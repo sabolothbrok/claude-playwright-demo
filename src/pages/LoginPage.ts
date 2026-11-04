@@ -19,7 +19,7 @@ export class LoginPage {
     this.usernameInput = page.locator('#user-name');
     this.passwordInput = page.locator('#password');
     this.loginButton = page.locator('#login-button');
-    this.errorMessage = page.locator('[data-test="error"]');
+    this.errorMessage = page.getByTestId('error');
     this.errorCloseButton = page.locator('.error-button');
     this.logo = page.locator('.login_logo');
   }
@@ -32,6 +32,19 @@ export class LoginPage {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
+  }
+
+  async fillUsername(username: string): Promise<void> {
+    await this.usernameInput.fill(username);
+  }
+
+  /** Click Login with whatever is currently in the form (used for validation cases). */
+  async submit(): Promise<void> {
+    await this.loginButton.click();
+  }
+
+  async dismissError(): Promise<void> {
+    await this.errorCloseButton.click();
   }
 
   async getErrorText(): Promise<string> {

@@ -24,3 +24,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Saved logins and report output
+/allure-results/
+/allure-report/
+/.allure/

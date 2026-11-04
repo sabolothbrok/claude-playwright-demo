@@ -1,4 +1,5 @@
 import { test, expect } from '@fixtures/pages.fixture';
+import { products } from '@data/products';
 import { checkoutInfo } from '@data/users';
 import { sum } from '@utils/money';
 
@@ -10,8 +11,8 @@ test.describe('Checkout', () => {
     checkoutStepTwoPage,
     checkoutCompletePage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
-    await authenticatedPage.addToCartByName('Sauce Labs Bike Light');
+    await authenticatedPage.addToCartByName(products.backpack);
+    await authenticatedPage.addToCartByName(products.bikeLight);
     await authenticatedPage.goToCart();
     await cartPage.expectLoaded();
 
@@ -40,7 +41,7 @@ test.describe('Checkout', () => {
     cartPage,
     checkoutStepOnePage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+    await authenticatedPage.addToCartByName(products.backpack);
     await authenticatedPage.goToCart();
     await cartPage.checkout();
     await checkoutStepOnePage.expectLoaded();
@@ -48,11 +49,11 @@ test.describe('Checkout', () => {
     await checkoutStepOnePage.continueToOverview();
     await expect(checkoutStepOnePage.errorMessage).toContainText('First Name is required');
 
-    await checkoutStepOnePage.firstNameInput.fill('John');
+    await checkoutStepOnePage.fillFirstName(checkoutInfo.firstName);
     await checkoutStepOnePage.continueToOverview();
     await expect(checkoutStepOnePage.errorMessage).toContainText('Last Name is required');
 
-    await checkoutStepOnePage.lastNameInput.fill('Doe');
+    await checkoutStepOnePage.fillLastName(checkoutInfo.lastName);
     await checkoutStepOnePage.continueToOverview();
     await expect(checkoutStepOnePage.errorMessage).toContainText('Postal Code is required');
   });
@@ -62,7 +63,7 @@ test.describe('Checkout', () => {
     cartPage,
     checkoutStepOnePage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+    await authenticatedPage.addToCartByName(products.backpack);
     await authenticatedPage.goToCart();
     await cartPage.checkout();
     await checkoutStepOnePage.expectLoaded();
@@ -76,7 +77,7 @@ test.describe('Checkout', () => {
     checkoutStepOnePage,
     checkoutStepTwoPage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+    await authenticatedPage.addToCartByName(products.backpack);
     await authenticatedPage.goToCart();
     await cartPage.checkout();
     await checkoutStepOnePage.fillInformation(
@@ -97,7 +98,7 @@ test.describe('Checkout', () => {
     checkoutStepTwoPage,
     checkoutCompletePage,
   }) => {
-    await authenticatedPage.addToCartByName('Sauce Labs Backpack');
+    await authenticatedPage.addToCartByName(products.backpack);
     await authenticatedPage.goToCart();
     await cartPage.checkout();
     await checkoutStepOnePage.fillInformation(
