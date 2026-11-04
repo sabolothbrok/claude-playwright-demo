@@ -29,6 +29,14 @@ export class CheckoutStepOnePage extends BasePage {
     await this.postalCodeInput.fill(postalCode);
   }
 
+  async fillFirstName(firstName: string): Promise<void> {
+    await this.firstNameInput.fill(firstName);
+  }
+
+  async fillLastName(lastName: string): Promise<void> {
+    await this.lastNameInput.fill(lastName);
+  }
+
   async continueToOverview(): Promise<void> {
     await this.continueButton.click();
   }

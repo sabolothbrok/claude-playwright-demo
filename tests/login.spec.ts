@@ -26,22 +26,22 @@ test.describe('Login', () => {
 
   test('empty credentials show a required-field error @regression', async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.loginButton.click();
+    await loginPage.submit();
     await expect(loginPage.errorMessage).toContainText('Username is required');
   });
 
   test('missing password shows a required-field error @regression', async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.usernameInput.fill(users.standard.username);
-    await loginPage.loginButton.click();
+    await loginPage.fillUsername(users.standard.username);
+    await loginPage.submit();
     await expect(loginPage.errorMessage).toContainText('Password is required');
   });
 
   test('error banner can be dismissed @regression', async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.loginButton.click();
+    await loginPage.submit();
     await expect(loginPage.errorMessage).toBeVisible();
-    await loginPage.errorCloseButton.click();
+    await loginPage.dismissError();
     await expect(loginPage.errorMessage).toBeHidden();
   });
 

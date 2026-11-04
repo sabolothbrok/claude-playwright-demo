@@ -19,7 +19,7 @@ export class ProductDetailPage extends BasePage {
     this.itemImage = page.locator('.inventory_details_img');
     this.addToCartButton = page.getByRole('button', { name: /^Add to cart$/ });
     this.removeButton = page.getByRole('button', { name: /^Remove$/ });
-    this.backButton = page.locator('[data-test="back-to-products"]');
+    this.backButton = page.getByTestId('back-to-products');
   }
 
   async expectLoaded(): Promise<void> {

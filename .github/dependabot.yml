@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      playwright:
+        patterns: ['@playwright/*', 'playwright*']
+      lint-and-format:
+        patterns: ['eslint*', '@typescript-eslint/*', 'prettier']
+      reporting:
+        patterns: ['allure*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

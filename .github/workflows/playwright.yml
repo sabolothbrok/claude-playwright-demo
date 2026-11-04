@@ -10,9 +10,35 @@ on:
     # Nightly regression run at 06:00 UTC
     - cron: '0 6 * * *'
 
+# Cancel superseded runs on a PR; never cancel a run on a branch or the nightly.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  quality:
+    name: Quality gates (typecheck, lint, format)
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck, lint and format check
+        run: npm run check
+
   test:
     name: Run Playwright tests
+    needs: quality
     timeout-minutes: 30
     # Pinned: `ubuntu-latest` moved to Ubuntu 26.04 on 2026-10-19, which broke
     # the cached WebKit build (libicu74 vs libicu78) and made apt ~100x slower.
@@ -82,6 +108,15 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
+      - name: Upload Allure results (for the merged report)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-results-${{ matrix.project }}
+          path: allure-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload test results (traces, videos, screenshots)
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
@@ -89,3 +124,45 @@ jobs:
           name: test-results-${{ matrix.project }}
           path: test-results/
           retention-days: 14
+
+  report:
+    name: Merged quality report
+    needs: [quality, test]
+    # Run even when some browsers failed (that is when the report matters most),
+    # but not when the quality gate failed and the browser matrix never started.
+    if: ${{ !cancelled() && needs.quality.result == 'success' }}
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download every browser's Allure results
+        uses: actions/download-artifact@v8
+        with:
+          pattern: allure-results-*
+          merge-multiple: true
+          path: allure-results
+
+      - name: Generate the Allure report
+        run: npx allure generate allure-results --clean
+
+      - name: Summarise in the run page
+        run: |
+          jq -r '"## Quality report\n\n| Status | Total | Passed | Failed | Broken | Flaky |\n|---|---|---|---|---|---|\n| \(.status) | \(.stats.total // 0) | \(.stats.passed // 0) | \(.stats.failed // 0) | \(.stats.broken // 0) | \(.stats.flaky // 0) |\n\nDownload the **allure-report** artifact and open `index.html` for results grouped by feature, with readable steps."' allure-report/summary.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the Allure report
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 30
