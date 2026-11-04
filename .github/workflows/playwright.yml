@@ -212,14 +212,18 @@ jobs:
           merge-multiple: true
           path: allure-results
 
+      # Also enforces the report's quality-gate rules (allurerc.mjs): exits non-zero on any
+      # failed test or a wrong test count. The report is still written first.
       - name: Generate the Allure report
         run: npx allure generate allure-results --clean
 
       - name: Summarise in the run page
+        if: ${{ !cancelled() }}
         run: |
           jq -r '"## Pre-flight checks report\n\n| Status | Total | Passed | Failed | Broken | Flaky |\n|---|---|---|---|---|---|\n| \(.status) | \(.stats.total // 0) | \(.stats.passed // 0) | \(.stats.failed // 0) | \(.stats.broken // 0) | \(.stats.flaky // 0) |\n\nDownload the **allure-report** artifact and open `index.html` for results grouped by feature, with readable steps."' allure-report/summary.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the Allure report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: allure-report
