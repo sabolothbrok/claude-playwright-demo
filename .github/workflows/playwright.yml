@@ -185,7 +185,7 @@ jobs:
           retention-days: 14
 
   report:
-    name: Merged quality report
+    name: Merged test report
     needs: [preflight, test]
     # Run even when some browsers failed (that is when the report matters most),
     # but not when the pre-flight checks failed and the browser matrix never started.
@@ -217,7 +217,7 @@ jobs:
 
       - name: Summarise in the run page
         run: |
-          jq -r '"## Quality report\n\n| Status | Total | Passed | Failed | Broken | Flaky |\n|---|---|---|---|---|---|\n| \(.status) | \(.stats.total // 0) | \(.stats.passed // 0) | \(.stats.failed // 0) | \(.stats.broken // 0) | \(.stats.flaky // 0) |\n\nDownload the **allure-report** artifact and open `index.html` for results grouped by feature, with readable steps."' allure-report/summary.json >> "$GITHUB_STEP_SUMMARY"
+          jq -r '"## Test report\n\n| Status | Total | Passed | Failed | Broken | Flaky |\n|---|---|---|---|---|---|\n| \(.status) | \(.stats.total // 0) | \(.stats.passed // 0) | \(.stats.failed // 0) | \(.stats.broken // 0) | \(.stats.flaky // 0) |\n\nDownload the **allure-report** artifact and open `index.html` for results grouped by feature, with readable steps."' allure-report/summary.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the Allure report
         uses: actions/upload-artifact@v7
