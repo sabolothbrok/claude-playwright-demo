@@ -148,6 +148,13 @@ npm run test:chromium && npm run report:allure
 ```
 
 The stock Playwright HTML report and JUnit XML are still produced alongside it.
+
+The report's **Quality Gates** tab shows the rules in `allurerc.mjs`: no failed
+tests (`maxFailures: 0`) and the expected test count (`minTestsCount`: 120 in CI,
+= 4 browsers x 30 tests, so a missing browser or spec is caught; 30 locally).
+A broken rule makes `allure generate` exit non-zero, which fails the CI report
+job after the report has been written and uploaded.
+
 Trends across runs need the report history to be published somewhere
 persistent (e.g. GitHub Pages); that is not enabled yet.
 
