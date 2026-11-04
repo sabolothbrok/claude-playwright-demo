@@ -211,6 +211,18 @@ Choices made on evidence, including the ones that were rejected:
   element first. Result: 150/150 on repeat. The same pass found that SauceDemo's open
   sidebar is `aria-hidden`, so role locators cannot see it — an accessibility defect in
   the app, and the reason those few links use `data-test`.
+- **Dependency audit: 25 → 19 vulnerabilities, 0 critical, 0 high; 0 in production
+  dependencies.** All findings were in dev tooling. Fixed: `dompurify` (Allure pins an
+  exact vulnerable version, so a patch-level `overrides` entry in `package.json`) and
+  `brace-expansion` (plain lockfile update). Left alone on purpose: 19 moderate
+  `glob`/`minimatch` denial-of-service advisories whose fixes are major-version jumps
+  (via ESLint 8, typescript-eslint and Allure); forcing those with overrides was tested
+  but not kept, since the risk of destabilising the toolchain outweighs a DoS issue in
+  tools that only process this repo's own file paths. They go away with the planned ESLint
+  migration. **Caveat:** the `dompurify` override cleans the installed package, but the
+  generated Allure report embeds Allure's own prebuilt copy (DOMPurify 3.4.16, confirmed in
+  the report's license banner), which only an Allure release can change. The report is built
+  from this repo's own test output, so exposure is low.
 - **Agents may not write until a person approves.** The Planner is read-only by
   construction; an instruction ("please wait for approval") was not enough on its
   own.
