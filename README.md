@@ -113,7 +113,7 @@ npm run report          # open the last Playwright HTML report
 npm run report:allure   # build and open the Allure report (run the tests first)
 ```
 
-## Quality checks
+## Pre-flight checks
 
 ```bash
 npm run check          # typecheck + lint + format check (what CI runs first)
